@@ -1,24 +1,26 @@
-﻿using System;
+﻿using IronOcr;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows.Forms;
 
 namespace Hots_Level_Logger
 {
     /// <summary>
-    /// Takes a screenshot.
+    /// Screenshot analysis testing
     /// </summary>
     class Program
     {
         /// <summary>
         /// Folder where the screenshot will be saved.
         /// </summary>
-        private static string path = $"C:{Path.DirectorySeparatorChar}Temp";
+        private static string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp";
 
         /// <summary>
-        /// Takes a screenshot.
+        /// Takes and analyses a screenshot.
         /// </summary>
         public static void Main(string[] args)
         {
@@ -26,13 +28,43 @@ namespace Hots_Level_Logger
             Console.Title = "Hots Level Logger";
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.OutputEncoding = Encoding.UTF8;
 
+            // Capture screenshot
+#if false
             Console.WriteLine("Press [Enter] to capture a screenshot.");
             Console.ReadLine();
             Console.WriteLine("Capturing...");
-            CaptureScreen(path);
+            CaptureScreen(screenshotFolder);
             Console.WriteLine("Successfully captured screen.");
-            Console.WriteLine($"Saved screenshot at '{path}'.");
+            Console.WriteLine($"Saved screenshot at '{screenshotFolder}'.");
+#endif
+
+            // Analyse Screenshot
+            Console.WriteLine("Analysing capture...");
+            OcrResult result;// = new IronTesseract().Read($"{path}{Path.DirectorySeparatorChar}Capture.png");
+
+            for (int i = 3; i < 14; i++)
+            {
+                IronTesseract tesseract = new IronTesseract();
+                using (OcrInput input = new OcrInput($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture{i}.png"))
+                {
+                    input.ToGrayScale();
+                    input.DeNoise();
+                    input.Contrast();
+                    //input.Binarize();
+                    //input.Invert();
+
+                    result = tesseract.Read(input);
+                }
+
+                // Output
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine($"Text {i} ({result.Confidence}%):");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(result.Text);
+            }
 
             Console.WriteLine();
             Console.WriteLine("Press [Enter] to end the program.");

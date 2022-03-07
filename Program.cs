@@ -44,18 +44,31 @@ namespace Hots_Level_Logger
             Console.WriteLine("Analysing capture...");
             OcrResult result;// = new IronTesseract().Read($"{path}{Path.DirectorySeparatorChar}Capture.png");
 
-            for (int i = 3; i < 14; i++)
+            for (int i = 3; i < 19; i++)
             {
-                IronTesseract tesseract = new IronTesseract();
-                using (OcrInput input = new OcrInput($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture{i}.png"))
-                {
-                    input.ToGrayScale();
-                    input.DeNoise();
-                    input.Contrast();
-                    //input.Binarize();
-                    //input.Invert();
+                string filename = $"{screenshotFolder}{Path.DirectorySeparatorChar}Capture{i}.png";
 
-                    result = tesseract.Read(input);
+                TesseractConfiguration config = new TesseractConfiguration
+                {
+                    EngineMode = TesseractEngineMode.Default,
+                    PageSegmentationMode = TesseractPageSegmentationMode.Auto,
+                    ReadBarCodes = false,
+                    WhiteListCharacters = "0123456789"
+                };
+                IronTesseract ocr = new IronTesseract(config);
+
+                using (OcrInput input = new OcrInput(filename))
+                {
+                    input.MinimumDPI = null;
+
+                    //input.Invert();
+                    //input.DeNoise();
+                    //input.Contrast();
+                    //input.DeNoise();
+                    input.ToGrayScale();
+                    //input.Binarize();
+
+                    result = ocr.Read(input);
                 }
 
                 // Output

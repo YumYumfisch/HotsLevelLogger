@@ -1,34 +1,28 @@
-﻿using IronOcr;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 
 namespace Hots_Level_Logger
 {
-    /// <summary>
-    /// Screenshot analysis testing
-    /// </summary>
-    class Program
+    public static class Program
     {
         /// <summary>
         /// Folder where the screenshot will be saved.
         /// </summary>
-        private static string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp";
+        private static readonly string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp";
 
-        /// <summary>
-        /// Takes and analyses a screenshot.
-        /// </summary>
         public static void Main(string[] args)
         {
+            #region Console Setup
             AllocConsole();
             Console.Title = "Hots Level Logger";
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.OutputEncoding = Encoding.UTF8;
+            #endregion Console Setup
 
             // Capture screenshot
 #if false
@@ -40,65 +34,22 @@ namespace Hots_Level_Logger
             Console.WriteLine($"Saved screenshot at '{screenshotFolder}'.");
 #endif
 
-            // Analyse Screenshot
-            Console.WriteLine("Analysing capture...");
-            OcrResult result;// = new IronTesseract().Read($"{path}{Path.DirectorySeparatorChar}Capture.png");
+            Console.WriteLine("Reading capture...");
+            string filename = $"{screenshotFolder}{Path.DirectorySeparatorChar}Capture18.png";
+            Bitmap bitmap = new Bitmap(filename);
 
-            for (int i = 3; i < 19; i++)
-            {
-                string filename = $"{screenshotFolder}{Path.DirectorySeparatorChar}Capture{i}.png";
+            Console.WriteLine("Stripping capture...");
+            bitmap = ImageManipulation.StripImage(bitmap);
 
-                TesseractConfiguration config = new TesseractConfiguration
-                {
-                    EngineMode = TesseractEngineMode.Default,
-                    PageSegmentationMode = TesseractPageSegmentationMode.Auto,
-                    ReadBarCodes = false,
-                    WhiteListCharacters = "0123456789"
-                };
-                IronTesseract ocr = new IronTesseract(config);
+            Console.WriteLine("Analyzing capture...");
+            Console.WriteLine(OpticalCharacterRecognition.GetNumberString(bitmap));
 
-                using (OcrInput input = new OcrInput(filename))
-                {
-                    input.MinimumDPI = null;
 
-                    //input.Invert();
-                    //input.DeNoise();
-                    //input.Contrast();
-                    //input.DeNoise();
-                    input.ToGrayScale();
-                    //input.Binarize();
 
-                    result = ocr.Read(input);
-                }
-
-                // Output
-                Console.WriteLine();
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine($"Text {i} ({result.Confidence}%):");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine(result.Text);
-            }
-
+            // End
             Console.WriteLine();
             Console.WriteLine("Press [Enter] to end the program.");
             Console.ReadLine();
-        }
-
-        /// <summary>
-        /// Saves a screenshot of the primary screen as 'Capture.png' at the specified path.
-        /// </summary>
-        /// <param name="folderPath">Folder where the screenshot will be saved.</param>
-        private static void CaptureScreen(string folderPath)
-        {
-            //Create a new bitmap and graphics Objects that fit the primary screen.
-            Bitmap bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
-            Graphics graphics = Graphics.FromImage(bitmap);
-
-            // Take screenshot from upper left to bottom right corner of primary screen.
-            graphics.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
-
-            // Save screenshot to specified path.
-            bitmap.Save($"{folderPath}{Path.DirectorySeparatorChar}Capture.png", ImageFormat.Png);
         }
 
         /// <summary>

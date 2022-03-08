@@ -12,13 +12,13 @@ namespace Hots_Level_Logger
         /// Returns a string that contains all numbers recognized from the image.
         /// </summary>
         /// <param name="bitmap">The image to be analyzed. Preferrably dark text on a bright background.</param>
-        /// <returns>The numbers recognized in the image.</returns>
+        /// <returns>The string of digits recognized in the image.</returns>
         public static string GetNumberString(Bitmap bitmap)
         {
             TesseractConfiguration config = new TesseractConfiguration
             {
                 EngineMode = TesseractEngineMode.Default,
-                PageSegmentationMode = TesseractPageSegmentationMode.SingleWord,
+                PageSegmentationMode = TesseractPageSegmentationMode.Auto,
                 ReadBarCodes = false,
                 WhiteListCharacters = "0123456789"
             };
@@ -29,12 +29,12 @@ namespace Hots_Level_Logger
             {
                 input.MinimumDPI = null;
 
-                //input.DeNoise(); // Might be helpful
+                input.DeNoise(); // Might be helpful
 
                 result = ocr.Read(input);
             }
 
-            return $"Output: ({result.Confidence}%):\r\n{result.Text}";
+            return result.Text;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Hots_Level_Logger
             Bitmap bitmap = new Bitmap(filepath);
 
             Console.WriteLine("Manipulating capture...");
-            bitmap = ImageManipulation.StripImage(bitmap);
+            bitmap = ImageManipulation.ImageCleanup(bitmap);
 
             bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_Edit.png");
 

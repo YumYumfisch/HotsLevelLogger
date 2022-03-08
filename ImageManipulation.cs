@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Text;
 
 namespace Hots_Level_Logger
 {
@@ -11,20 +8,40 @@ namespace Hots_Level_Logger
     /// </summary>
     public static class ImageManipulation
     {
+        /// <summary>
+        /// Sets every pixel to black if it has a valid color.
+        /// Otherwise it will be set to white.
+        /// </summary>
+        /// <param name="bitmap">Image to be manipulated.</param>
+        /// <returns>Binarized (Black and White) bitmap with numbers in black on a white background.</returns>
         public static Bitmap StripImage(Bitmap bitmap)
         {
-            for (int bitmapWidthIndex = 0; bitmapWidthIndex < bitmap.Width; bitmapWidthIndex++)
+            for (int x = 0; x < bitmap.Width; x++)
             {
-                for (int bitmapHeightIndex = 0; bitmapHeightIndex < bitmap.Height; bitmapHeightIndex++)
+                for (int y = 0; y < bitmap.Height; y++)
                 {
-                    // If (Pixelfarbe in ListeMitGültigenPixelfarben)
-                    // {  Pixel Schwarz setzen  } (Vordergrund)
-                    // Else 
-                    // {  Pixel Weiß setzen  } (Hintergrund)
+                    Color pixelColor = bitmap.GetPixel(x, y);
+                    if (ValidColor(pixelColor))
+                    {
+                        bitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0));
+                    }
+                    else
+                    {
+                        bitmap.SetPixel(x, y, Color.FromArgb(255, 255, 255));
+                    }
                 }
             }
-
             return bitmap;
+        }
+
+        /// <summary>
+        /// Determines whether a color is a color that is used for displaying numbers.
+        /// </summary>
+        /// <param name="color">Color to be validated.</param>
+        private static bool ValidColor(Color color)
+        {
+            // TODO
+            return new Random().Next(0, 2) == 0;
         }
     }
 }

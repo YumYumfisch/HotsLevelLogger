@@ -18,7 +18,7 @@ namespace Hots_Level_Logger
             TesseractConfiguration config = new TesseractConfiguration
             {
                 EngineMode = TesseractEngineMode.Default,
-                PageSegmentationMode = TesseractPageSegmentationMode.Auto,
+                PageSegmentationMode = TesseractPageSegmentationMode.SingleWord,
                 ReadBarCodes = false,
                 WhiteListCharacters = "0123456789"
             };
@@ -29,17 +29,12 @@ namespace Hots_Level_Logger
             {
                 input.MinimumDPI = null;
 
-                //input.Invert();
-                //input.DeNoise();
-                //input.Contrast();
-                //input.DeNoise();
-                input.ToGrayScale();
-                //input.Binarize();
+                //input.DeNoise(); // Might be helpful
 
                 result = ocr.Read(input);
             }
 
-            return $"Output: ({result.Confidence}):\r\n{result.Text}";
+            return $"Output: ({result.Confidence}%):\r\n{result.Text}";
         }
     }
 }

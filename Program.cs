@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,9 +9,14 @@ namespace Hots_Level_Logger
     public static class Program
     {
         /// <summary>
-        /// Folder where the screenshot will be saved.
+        /// Folder where the images will be read from and saved to.
         /// </summary>
         private static readonly string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp";
+
+        /// <summary>
+        /// Filename of png to be analyzed.
+        /// </summary>
+        private static readonly string filename = "Capture18.png";
 
         public static void Main(string[] args)
         {
@@ -35,11 +39,13 @@ namespace Hots_Level_Logger
 #endif
 
             Console.WriteLine("Reading capture...");
-            string filename = $"{screenshotFolder}{Path.DirectorySeparatorChar}Capture18.png";
-            Bitmap bitmap = new Bitmap(filename);
+            string filepath = $"{screenshotFolder}{Path.DirectorySeparatorChar}{filename}";
+            Bitmap bitmap = new Bitmap(filepath);
 
-            Console.WriteLine("Stripping capture...");
+            Console.WriteLine("Manipulating capture...");
             bitmap = ImageManipulation.StripImage(bitmap);
+
+            bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_Edit.png");
 
             Console.WriteLine("Analyzing capture...");
             Console.WriteLine(OpticalCharacterRecognition.GetNumberString(bitmap));

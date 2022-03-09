@@ -1,30 +1,25 @@
 ﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Windows.Forms;
 
 namespace Hots_Level_Logger
 {
     /// <summary>
-    /// Handles capturing the screen and creating screenshots.
+    /// Handles capturing of the content displayed on the screen.
     /// </summary>
-    public static class Screencapture
+    public static class ScreenCapture
     {
         /// <summary>
-        /// Saves a screenshot of the primary screen as 'Capture.png' at the specified path.
+        /// Captures a screenshot in a specific area of the screen.
         /// </summary>
-        /// <param name="folderPath">Folder where the screenshot will be saved.</param>
-        private static void CaptureScreen(string folderPath)
+        /// <param name="area">Area on the screen to be captured.</param>
+        /// <returns>The Pixels currently displayed on screen in the specified area.</returns>
+        public static Bitmap CaptureScreen(Rectangle area)
         {
-            //Create a new bitmap and graphics Objects that fit the primary screen.
-            Bitmap bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
+            Bitmap bitmap = new Bitmap(area.Width, area.Height);
+
             Graphics graphics = Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(area.Left, area.Top, 0, 0, area.Size);
 
-            // Take screenshot from upper left to bottom right corner of primary screen.
-            graphics.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
-
-            // Save screenshot to specified path.
-            bitmap.Save($"{folderPath}{Path.DirectorySeparatorChar}Capture.png", ImageFormat.Png);
+            return bitmap;
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Hots_Level_Logger
@@ -17,7 +16,6 @@ namespace Hots_Level_Logger
         public static void Main(string[] args)
         {
             #region Console Setup
-            AllocConsole();
             Console.Title = "Hots Level Logger";
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Green;
@@ -62,12 +60,5 @@ namespace Hots_Level_Logger
                 Console.WriteLine();
             }
         }
-
-        /// <summary>
-        /// Uses kernel32.dll to allocate a Windows console.
-        /// </summary>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool AllocConsole();
     }
 }

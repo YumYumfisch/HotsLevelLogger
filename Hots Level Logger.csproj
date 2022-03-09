@@ -3,10 +3,11 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net5.0-windows</TargetFramework>
-		<UseWindowsForms>true</UseWindowsForms>
 		<RootNamespace>Hots_Level_Logger</RootNamespace>
-		<ApplicationIcon />
-		<StartupObject />
+		<ApplicationIcon>Zergling.ico</ApplicationIcon>
+		<Authors>YumYumFisch</Authors>
+		<Description>Der Hots Level Logger loggt Level aus Hots.</Description>
+		<Copyright>2022</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -21,14 +21,28 @@ namespace Hots_Level_Logger
             {
                 for (int y = 0; y < bitmap.Height; y++)
                 {
-                    Color pixelColor = bitmap.GetPixel(x, y);
-                    if (ValidatePixelColor(pixelColor))
+                    // Remove Border (2 lines each at the top and bottom and 3 rows each at the left and right)
+                    if (y <= 2 || y >= bitmap.Height - 2 || x <= 3 || x >= bitmap.Width - 3)
                     {
-                        bitmap.SetPixel(x, y, Color.FromArgb(0, 0, 0));
+                        bitmap.SetPixel(x, y, Color.White);
+                        continue;
+                    }
+
+                    // Remove padding between digits
+                    if (x > 10 && (x - 10) % 9 < 3)
+                    {
+                        bitmap.SetPixel(x, y, Color.White);
+                        continue;
+                    }
+
+                    // Remove invalid pixels in the area of the digit
+                    if (ValidatePixelColor(bitmap.GetPixel(x, y)))
+                    {
+                        bitmap.SetPixel(x, y, Color.Black);
                     }
                     else
                     {
-                        bitmap.SetPixel(x, y, Color.FromArgb(255, 255, 255));
+                        bitmap.SetPixel(x, y, Color.White);
                     }
                 }
             }

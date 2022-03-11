@@ -38,11 +38,6 @@ namespace Hots_Level_Logger
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
 
-            if (!Directory.Exists(screenshotFolder))
-            {
-                Directory.CreateDirectory(screenshotFolder);
-            }
-
             Size areaSize = new Size(40, 15);
             List<Rectangle> areas = new List<Rectangle>();
             areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY1), areaSize));
@@ -64,6 +59,11 @@ namespace Hots_Level_Logger
 
 
                 Console.WriteLine("Capturing...");
+                if (!Directory.Exists(screenshotFolder))
+                {
+                    Directory.CreateDirectory(screenshotFolder);
+                }
+
                 for (int i = 0; i < areas.Count; i++)
                 {
                     Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);

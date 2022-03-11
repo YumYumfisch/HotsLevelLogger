@@ -13,6 +13,22 @@ namespace Hots_Level_Logger
         /// </summary>
         private static readonly string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}HotsLevelLogs";
 
+        #region Border Pixel Position Constants
+        /* Border Pixel Position Constants:
+         * Pixel positions that can be combined to get the top-left corner of the are to be screenshotted for a given player.
+         */
+
+        // X positions
+        private const int BorderPosXLeft = 31;
+        private const int BorderPosXRight = 2462;
+        // Y positions
+        private const int BorderPosY1 = 261;
+        private const int BorderPosY2 = 393;
+        private const int BorderPosY3 = 525;
+        private const int BorderPosY4 = 657;
+        private const int BorderPosY5 = 790;
+        #endregion Border Pixel Position Constants
+
         public static void Main(string[] args)
         {
             #region Console Setup
@@ -29,16 +45,16 @@ namespace Hots_Level_Logger
 
             Size areaSize = new Size(40, 15);
             List<Rectangle> areas = new List<Rectangle>();
-            areas.Add(new Rectangle(new Point(31, 261), areaSize));
-            areas.Add(new Rectangle(new Point(31, 393), areaSize));
-            areas.Add(new Rectangle(new Point(31, 525), areaSize));
-            areas.Add(new Rectangle(new Point(31, 657), areaSize));
-            areas.Add(new Rectangle(new Point(31, 790), areaSize));
-            areas.Add(new Rectangle(new Point(2462, 261), areaSize));
-            areas.Add(new Rectangle(new Point(2462, 393), areaSize));
-            areas.Add(new Rectangle(new Point(2462, 525), areaSize));
-            areas.Add(new Rectangle(new Point(2462, 657), areaSize));
-            areas.Add(new Rectangle(new Point(2462, 790), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY1), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY2), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY3), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY4), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY5), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY1), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY2), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY3), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY4), areaSize));
+            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY5), areaSize));
 
             while (true)
             {

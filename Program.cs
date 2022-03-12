@@ -39,17 +39,30 @@ namespace Hots_Level_Logger
             #endregion Console Setup
 
             Size areaSize = new Size(40, 15);
-            List<Rectangle> areas = new List<Rectangle>();
-            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY1), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY2), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY3), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY4), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXLeft, BorderPosY5), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY1), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY2), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY3), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY4), areaSize));
-            areas.Add(new Rectangle(new Point(BorderPosXRight, BorderPosY5), areaSize));
+            List<Rectangle> areas = new List<Rectangle> {
+                new Rectangle(new Point(BorderPosXLeft, BorderPosY1), areaSize),
+                new Rectangle(new Point(BorderPosXLeft, BorderPosY2), areaSize),
+                new Rectangle(new Point(BorderPosXLeft, BorderPosY3), areaSize),
+                new Rectangle(new Point(BorderPosXLeft, BorderPosY4), areaSize),
+                new Rectangle(new Point(BorderPosXLeft, BorderPosY5), areaSize),
+                new Rectangle(new Point(BorderPosXRight, BorderPosY1), areaSize),
+                new Rectangle(new Point(BorderPosXRight, BorderPosY2), areaSize),
+                new Rectangle(new Point(BorderPosXRight, BorderPosY3), areaSize),
+                new Rectangle(new Point(BorderPosXRight, BorderPosY4), areaSize),
+                new Rectangle(new Point(BorderPosXRight, BorderPosY5), areaSize)
+            };
+
+
+
+#if DEBUG
+            Bitmap bitmap = Image.FromFile($"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}Capture_6_raw.png") as Bitmap;
+            bitmap = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(bitmap));
+
+            Console.WriteLine();
+            Console.ReadLine();
+#else
+
+
 
             while (true)
             {
@@ -69,12 +82,13 @@ namespace Hots_Level_Logger
                     Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_raw.png");
 
-                    bitmap = ImageManipulation.TodoMethodName(ImageManipulation.SeparateDigits(bitmap));
+                    bitmap = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(bitmap));
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{OpticalCharacterRecognition.GetNumberString(bitmap)}.png");
                 }
                 Console.WriteLine($"Saved captures at '{screenshotFolder}'.");
                 Console.WriteLine();
             }
+#endif
         }
     }
 }

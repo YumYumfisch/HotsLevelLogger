@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
@@ -56,15 +57,157 @@ namespace Hots_Level_Logger
         }
 
         /// <summary>
-        /// Removes groups of neighboring pixels with less than 10 connected pixels.
+        /// Removes connected components with less than 10 pixels.
         /// </summary>
-        /// <param name="bitmap">Binarized Bitmap (only contains black or white pixels)</param>
+        /// <param name="bitmap">Binarized Bitmap (Black foreground, white background)</param>
         /// <returns>Denoised bitmap</returns>
-        public static Bitmap TodoMethodName(Bitmap bitmap)
+        public static Bitmap ConnectedComponentAnalysis(Bitmap bitmap)
         {
-            // TODO
+            int nextLabel = 1;
+            int[,] pixelLabels = new int[bitmap.Width, bitmap.Height];
+            Dictionary<int, List<int>> equivalenceMapping = new Dictionary<int, List<int>>();
+
+            // First pass
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    // Ignore Background
+                    if (bitmap.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        pixelLabels[x, y] = 0;
+                        continue;
+                    }
+
+                    List<Point> neighbors = new List<Point>();
+                    if (x > 0 && bitmap.GetPixel(x - 1, y).ToArgb() == Color.Black.ToArgb())
+                    {
+                        neighbors.Add(new Point(x - 1, y));
+                    }
+                    if (y > 0 && bitmap.GetPixel(x, y - 1).ToArgb() == Color.Black.ToArgb())
+                    {
+                        neighbors.Add(new Point(x, y - 1));
+                    }
+
+                    if (neighbors.Count == 0)
+                    {
+                        List<int> list = new List<int> { nextLabel };
+                        equivalenceMapping.Add(nextLabel, list);
+
+                        pixelLabels[x, y] = nextLabel;
+                        nextLabel++;
+                    }
+                    else
+                    {
+                        List<int> neighborLabels = new List<int>();
+                        foreach (Point neighbor in neighbors)
+                        {
+                            neighborLabels.Add(pixelLabels[neighbor.X, neighbor.Y]);
+                        }
+                        pixelLabels[x, y] = neighborLabels.Min();
+
+                        // Store equivalences
+                        foreach (int neighborLabel in neighborLabels)
+                        {
+                            List<int> unitedList;
+                            if (!equivalenceMapping.TryGetValue(neighborLabel, out unitedList))
+                            {
+                                throw new Exception($"Cannot get key {neighborLabel} from equivalences.");
+                            }
+                            foreach (int internalNeighborLabel in neighborLabels)
+                            {
+                                if (!unitedList.Contains(internalNeighborLabel))
+                                {
+                                    unitedList.Add(internalNeighborLabel);
+                                }
+                            }
+                            equivalenceMapping[neighborLabel] = unitedList;
+                        }
+                    }
+                }
+            }
+
+#if DEBUG
+            DebugPrint(pixelLabels);
+#endif
+
+            // Complete equivalence mapping
+            bool done = false;
+            while (!done)
+            {
+                done = true;
+                for (int key = 1; key < equivalenceMapping.Count + 1; key++)
+                {
+                    List<int> values = equivalenceMapping[key];
+
+                    foreach (List<int> internalValues in equivalenceMapping.Values)
+                    {
+                        if (internalValues.Contains(key))
+                        {
+                            foreach (int value in internalValues)
+                            {
+                                if (!values.Contains(value))
+                                {
+                                    values.Add(value);
+                                    done = false;
+                                }
+                            }
+                        }
+                    }
+
+                    equivalenceMapping[key] = values;
+                }
+            }
+
+            // Second pass
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    // Ignore Background
+                    if (bitmap.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        continue;
+                    }
+
+                    List<int> labels;
+                    equivalenceMapping.TryGetValue(pixelLabels[x, y], out labels);
+                    pixelLabels[x, y] = labels.Min();
+                }
+            }
+
+#if DEBUG
+            DebugPrint(pixelLabels);
+#endif
+
             return bitmap;
         }
+
+#if DEBUG
+        /// <summary>
+        /// Debugging only: Prints a twodimensional int array.
+        /// </summary>
+        private static void DebugPrint(int[,] pixelLabels)
+        {
+            Console.WriteLine();
+            for (int y = 0; y < pixelLabels.GetLength(1); y++)
+            {
+                for (int x = 0; x < pixelLabels.GetLength(0); x++)
+                {
+                    if (pixelLabels[x, y] == 0)
+                    {
+                        Console.Write("  ,");
+                    }
+                    else
+                    {
+                        Console.Write($"{pixelLabels[x, y],2},");
+                    }
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
+        }
+#endif
 
         /// <summary>
         /// Determines whether a color is a color that is used for displaying numbers.

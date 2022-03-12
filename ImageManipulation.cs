@@ -16,7 +16,7 @@ namespace Hots_Level_Logger
         /// </summary>
         /// <param name="source">Image to be manipulated.</param>
         /// <returns>Binarized (Black and White) bitmap with numbers in black on a white background.</returns>
-        public static Bitmap ImageCleanup(Bitmap source)
+        public static Bitmap SeparateDigits(Bitmap source)
         {
             Bitmap output = new Bitmap(source.Width + 8, source.Height);
 
@@ -53,6 +53,17 @@ namespace Hots_Level_Logger
                 }
             }
             return output;
+        }
+
+        /// <summary>
+        /// Removes groups of neighboring pixels with less than 10 connected pixels.
+        /// </summary>
+        /// <param name="bitmap">Binarized Bitmap (only contains black or white pixels)</param>
+        /// <returns>Denoised bitmap</returns>
+        public static Bitmap TodoMethodName(Bitmap bitmap)
+        {
+            // TODO
+            return bitmap;
         }
 
         /// <summary>

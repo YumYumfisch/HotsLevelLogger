@@ -69,7 +69,7 @@ namespace Hots_Level_Logger
                     Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_raw.png");
 
-                    bitmap = ImageManipulation.ImageCleanup(bitmap);
+                    bitmap = ImageManipulation.TodoMethodName(ImageManipulation.SeparateDigits(bitmap));
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{OpticalCharacterRecognition.GetNumberString(bitmap)}.png");
                 }
                 Console.WriteLine($"Saved captures at '{screenshotFolder}'.");

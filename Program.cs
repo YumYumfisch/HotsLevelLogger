@@ -52,24 +52,10 @@ namespace Hots_Level_Logger
                 new Rectangle(new Point(BorderPosXRight, BorderPosY5), areaSize)
             };
 
-
-
-#if DEBUG
-            Bitmap bitmap = Image.FromFile($"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}Capture_6_raw.png") as Bitmap;
-            bitmap = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(bitmap));
-
-            Console.WriteLine();
-            Console.ReadLine();
-#else
-
-
-
             while (true)
             {
                 Console.WriteLine("Press [Enter] to analyze the screen.");
                 Console.ReadLine();
-
-
 
                 Console.WriteLine("Capturing...");
                 if (!Directory.Exists(screenshotFolder))
@@ -88,7 +74,6 @@ namespace Hots_Level_Logger
                 Console.WriteLine($"Saved captures at '{screenshotFolder}'.");
                 Console.WriteLine();
             }
-#endif
         }
     }
 }

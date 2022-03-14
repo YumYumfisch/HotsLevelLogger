@@ -31,7 +31,7 @@ namespace Hots_Level_Logger
                 result = ocr.Read(input);
             }
 
-            return result.Text.Trim() + "_" + result.Confidence;
+            return result.Text.Trim();
         }
     }
 }

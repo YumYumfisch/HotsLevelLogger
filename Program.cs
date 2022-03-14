@@ -63,14 +63,48 @@ namespace Hots_Level_Logger
                     Directory.CreateDirectory(screenshotFolder);
                 }
 
+                int[] levels = new int[areas.Count];
+                int sum = 0;
+                int max = 0;
+                int min = 0;
+                Console.Write("Levels: {");
                 for (int i = 0; i < areas.Count; i++)
                 {
                     Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_raw.png");
 
                     bitmap = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(bitmap));
-                    bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{OpticalCharacterRecognition.GetNumberString(bitmap)}.png");
+                    levels[i] = OpticalCharacterRecognition.GetNumber(bitmap, out _);
+                    sum += levels[i];
+
+                    if (levels[i] > max)
+                    {
+                        max = levels[i];
+                    }
+                    if (min == 0)
+                    {
+                        min = levels[i];
+                    }
+                    else if (levels[i] != 0 && levels[i] < min)
+                    {
+                        min = levels[i];
+                    }
+
+                    if (i == areas.Count - 1)
+                    {
+                        Console.WriteLine(levels[i] + "}");
+                    }
+                    else
+                    {
+                        Console.Write($"{levels[i]}, ");
+                    }
+                    bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{levels[i]}.png");
                 }
+                Console.WriteLine();
+                Console.WriteLine($"Highest level = {max}");
+                Console.WriteLine($"Lowest  level = {min}");
+                Console.WriteLine($"Average level = {sum / areas.Count}");
+                Console.WriteLine();
                 Console.WriteLine($"Saved captures at '{screenshotFolder}'.");
                 Console.WriteLine();
             }

@@ -13,7 +13,7 @@ namespace Hots_Level_Logger
         /// </summary>
         /// <param name="bitmap">The image to be analyzed. Preferrably dark text on a bright background.</param>
         /// <returns>The string of digits recognized in the image.</returns>
-        public static string GetNumberString(Bitmap bitmap)
+        public static int GetNumber(Bitmap bitmap, out double confidence)
         {
             TesseractConfiguration config = new TesseractConfiguration
             {
@@ -31,7 +31,12 @@ namespace Hots_Level_Logger
                 result = ocr.Read(input);
             }
 
-            return result.Text.Trim();
+            confidence = result.Confidence;
+            if (result.Text.Trim() == "")
+            {
+                return 0;
+            }
+            return int.Parse(result.Text.Trim());
         }
     }
 }

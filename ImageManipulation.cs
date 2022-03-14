@@ -180,6 +180,40 @@ namespace Hots_Level_Logger
             DebugPrint(pixelLabels);
 #endif
 
+            // Remove small components
+            List<int> smallComponentLabels = new List<int>();
+            for (int i = 0; i < nextLabel; i++)
+            {
+                int labelCount = 0;
+                foreach (int label in pixelLabels)
+                {
+                    if (label == i)
+                    {
+                        labelCount++;
+                    }
+                }
+                if (labelCount < 15) // Components that are smaller than 15 pixels will be removed.
+                {
+                    smallComponentLabels.Add(i);
+                }
+            }
+
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    if (smallComponentLabels.Contains(pixelLabels[x, y]))
+                    {
+                        pixelLabels[x, y] = 0;
+                        bitmap.SetPixel(x, y, Color.White);
+                    }
+                }
+            }
+
+#if DEBUG
+            DebugPrint(pixelLabels);
+#endif
+
             return bitmap;
         }
 

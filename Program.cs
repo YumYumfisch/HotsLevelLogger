@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace Hots_Level_Logger
 {
@@ -12,6 +13,8 @@ namespace Hots_Level_Logger
         /// Folder where the screenshots will be saved to.
         /// </summary>
         private static readonly string screenshotFolder = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}HotsLevelLogs";
+
+        private static readonly string TokenFile = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}_token.txt";
 
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
@@ -37,6 +40,26 @@ namespace Hots_Level_Logger
             Console.ForegroundColor = ConsoleColor.Green;
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
+
+            #region Discord Setup
+            if (!File.Exists(TokenFile))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error 404: token.txt not found.");
+                Console.ReadLine();
+                return;
+            }
+
+            _ = DiscordLogger.Init(928355348123885588, File.ReadAllText(TokenFile).Trim());
+
+            while (!DiscordLogger.IsReady())
+            {
+                Thread.Sleep(10);
+            }
+
+            Thread.Sleep(10);
+            Console.ForegroundColor = ConsoleColor.Green;
+            #endregion Discord Setup
 
             Size areaSize = new Size(40, 15);
             List<Rectangle> areas = new List<Rectangle> {

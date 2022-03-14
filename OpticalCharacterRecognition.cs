@@ -28,9 +28,6 @@ namespace Hots_Level_Logger
             using (OcrInput input = new OcrInput(bitmap))
             {
                 input.MinimumDPI = null;
-
-                input.DeNoise(); // Might be helpful, might be useless
-
                 result = ocr.Read(input);
             }
 

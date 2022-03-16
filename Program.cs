@@ -95,11 +95,14 @@ namespace Hots_Level_Logger
                 string discordMessage = "```h\r\nLevels: {";
                 for (int i = 0; i < areas.Count; i++)
                 {
-                    Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);
-                    bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_raw.png");
+                    Bitmap LevelBmp = null;
+                    using (Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(areas[i]))
+                    {
+                        LevelBmp = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(LevelCaptureBmp));
+                        levels[i] = OpticalCharacterRecognition.GetNumber(LevelBmp, out _);
+                        LevelCaptureBmp.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png");
+                    }
 
-                    bitmap = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(bitmap));
-                    levels[i] = OpticalCharacterRecognition.GetNumber(bitmap, out _);
                     sum += levels[i];
 
                     if (levels[i] > max)
@@ -125,7 +128,6 @@ namespace Hots_Level_Logger
                         Console.Write($"{levels[i]}, ");
                         discordMessage += $"{levels[i]}, ";
                     }
-                    bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{levels[i]}.png");
                 }
                 string stats = $"\r\nHighest level = {max}\r\nLowest  level = {min}\r\nAverage level = {sum / areas.Count}";
                 Console.WriteLine(stats);

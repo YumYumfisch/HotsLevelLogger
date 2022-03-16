@@ -40,7 +40,6 @@ namespace Hots_Level_Logger
             Console.ForegroundColor = ConsoleColor.Green;
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
-
             #region Discord Setup
             if (!File.Exists(TokenFile))
             {
@@ -50,16 +49,17 @@ namespace Hots_Level_Logger
                 return;
             }
 
-            _ = DiscordLogger.Init(928355348123885588, File.ReadAllText(TokenFile).Trim());
+            _ = Discord.Init(928355348123885588, File.ReadAllText(TokenFile).Trim());
 
-            while (!DiscordLogger.IsReady())
+            while (!Discord.IsReady())
             {
                 Thread.Sleep(10);
             }
 
             Thread.Sleep(10);
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine();
             #endregion Discord Setup
+            Console.WriteLine("Setup Complete.");
 
             Size areaSize = new Size(40, 15);
             List<Rectangle> areas = new List<Rectangle> {
@@ -81,6 +81,7 @@ namespace Hots_Level_Logger
                 Console.ReadLine();
 
                 Console.WriteLine("Capturing...");
+                Discord.Log("Capturing...");
                 if (!Directory.Exists(screenshotFolder))
                 {
                     Directory.CreateDirectory(screenshotFolder);
@@ -91,6 +92,7 @@ namespace Hots_Level_Logger
                 int max = 0;
                 int min = 0;
                 Console.Write("Levels: {");
+                string discordMessage = "```h\r\nLevels: {";
                 for (int i = 0; i < areas.Count; i++)
                 {
                     Bitmap bitmap = ScreenCapture.CaptureScreen(areas[i]);
@@ -116,17 +118,19 @@ namespace Hots_Level_Logger
                     if (i == areas.Count - 1)
                     {
                         Console.WriteLine(levels[i] + "}");
+                        discordMessage += levels[i] + "}\r\n";
                     }
                     else
                     {
                         Console.Write($"{levels[i]}, ");
+                        discordMessage += $"{levels[i]}, ";
                     }
                     bitmap.Save($"{screenshotFolder}{Path.DirectorySeparatorChar}Capture_{i}_edit_{levels[i]}.png");
                 }
-                Console.WriteLine();
-                Console.WriteLine($"Highest level = {max}");
-                Console.WriteLine($"Lowest  level = {min}");
-                Console.WriteLine($"Average level = {sum / areas.Count}");
+                string stats = $"\r\nHighest level = {max}\r\nLowest  level = {min}\r\nAverage level = {sum / areas.Count}";
+                Console.WriteLine(stats);
+                discordMessage += $"{stats}\r\n```";
+                Discord.Log(discordMessage);
                 Console.WriteLine();
                 Console.WriteLine($"Saved captures at '{screenshotFolder}'.");
                 Console.WriteLine();

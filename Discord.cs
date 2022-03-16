@@ -10,7 +10,7 @@ namespace Hots_Level_Logger
     /// <summary>
     /// Manages Discord logging.
     /// </summary>
-    public static class DiscordLogger
+    public static class Discord
     {
         private static bool ready = false;
         private static bool initialized = false;
@@ -41,7 +41,7 @@ namespace Hots_Level_Logger
                 initialized = false;
                 throw new ArgumentException();
             }
-            DiscordLogger.channelId = channelId;
+            Discord.channelId = channelId;
 
             // Start bot
             client = new DiscordSocketClient();
@@ -75,10 +75,10 @@ namespace Hots_Level_Logger
         public static void Log(string message)
         {
             channel.SendMessageAsync(message);
-
             Thread.Sleep(10);
 
-            #region Embed
+            #region Embed (Commented out)
+            /*
             EmbedAuthorBuilder author = new EmbedAuthorBuilder()
             {
                 Name = "Hots Level Logger",
@@ -122,7 +122,8 @@ namespace Hots_Level_Logger
                 Color = Color.Magenta
             }.Build();
             channel.SendMessageAsync(message, false, embed);
-            #endregion Embed
+            */
+            #endregion Embed (Commented out)
         }
 
         /// <summary>

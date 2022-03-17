@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -10,16 +11,19 @@ namespace Hots_Level_Logger
     public static class Program
     {
         /// <summary>
-        /// Folder where the screenshots will be saved to.
+        /// Folder where the number screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotLevelFolder = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}HotsLevelLogs";
+        private static readonly string screenshotLevelFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}LevelLogs";
 
         /// <summary>
-        /// Folder where the screenshots will be saved to.
+        /// Folder where the player screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotPlayerFolder = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}HotsPlayerLogs";
+        private static readonly string screenshotPlayerFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}PlayerLogs";
 
-        private static readonly string TokenFile = $"C:{Path.DirectorySeparatorChar}Temp{Path.DirectorySeparatorChar}_token.txt";
+        /// <summary>
+        /// Path to the text file that stores the token of the discord bot.
+        /// </summary>
+        private static readonly string TokenFile = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}token.txt";
 
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
@@ -115,6 +119,7 @@ namespace Hots_Level_Logger
                 Console.ReadLine();
 
                 Console.WriteLine("Capturing...");
+
                 if (!Directory.Exists(screenshotLevelFolder))
                 {
                     Directory.CreateDirectory(screenshotLevelFolder);
@@ -128,23 +133,36 @@ namespace Hots_Level_Logger
                 int sum = 0;
                 int max = 0;
                 int min = 0;
+
                 Console.Write("Levels: {");
                 string discordMessage = "```h\r\nLevels: {";
                 for (int i = 0; i < levelAreas.Count; i++)
                 {
+                    // Capture and analyze screen
                     Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
                     Bitmap LevelProcessedBmp = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(LevelCaptureBmp));
                     levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+
+                    // Save files
                     string filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
                     LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
                     ScreenCapture.CaptureScreen(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
 
+                    // Log funny numbers
+                    if (IsFunnyNumber(levels[i]))
+                    {
+                        // TODO: Log picture in Discord.
+                        Console.Write(" ha, funny ");
+                    }
+
+                    // Process additional information
                     sum += levels[i];
 
                     if (levels[i] > max)
                     {
                         max = levels[i];
                     }
+
                     if (min == 0)
                     {
                         min = levels[i];
@@ -165,14 +183,52 @@ namespace Hots_Level_Logger
                         discordMessage += $"{levels[i]}, ";
                     }
                 }
+
                 string stats = $"\r\nHighest level = {max}\r\nLowest  level = {min}\r\nAverage level = {sum / levelAreas.Count}";
                 Console.WriteLine(stats);
                 discordMessage += $"{stats}\r\n```";
                 Discord.Log(discordMessage);
+
                 Console.WriteLine();
-                Console.WriteLine($"Saved captures at '{screenshotLevelFolder}'.");
+                Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
                 Console.WriteLine();
             }
+        }
+
+        /// <summary>
+        /// Determines whether a number is a funny number.
+        /// </summary>
+        /// <param name="number">Number to be analyzed.</param>
+        private static bool IsFunnyNumber(int number)
+        {
+            // High or low level
+            if (number < 100 || number > 1000)
+            {
+                return true;
+            }
+
+            // Funny number
+            string numberString = number.ToString();
+            int[] funnyNumbers = { 187, 246, 314, 404, 418, 420 };
+            if (funnyNumbers.Contains(number) || number % 100 == 0 || numberString.Contains("69"))
+            {
+                return true;
+            }
+
+            // Same digits
+            if (numberString[0] == numberString[1] && numberString[0] == numberString[2])
+            {
+                return true;
+            }
+
+            // Increasing or decreasing digits
+            if ((numberString[0] == numberString[1] + 1 && numberString[0] == numberString[2] + 2) ||
+                (numberString[0] == numberString[1] - 1 && numberString[0] == numberString[2] - 2))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

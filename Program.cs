@@ -56,6 +56,9 @@ namespace Hots_Level_Logger
         private const int BorderPosPlayerY5 = 719;
         #endregion Border Pixel Position Constants
 
+        /// <summary>
+        /// Entry point for the application.
+        /// </summary>
         public static void Main(string[] args)
         {
             #region Console Setup
@@ -151,8 +154,7 @@ namespace Hots_Level_Logger
                     // Log funny numbers
                     if (IsFunnyNumber(levels[i]))
                     {
-                        // TODO: Log picture in Discord.
-                        Console.Write(" ha, funny ");
+                        Discord.LogFile($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}", levels[i].ToString());
                     }
 
                     // Process additional information

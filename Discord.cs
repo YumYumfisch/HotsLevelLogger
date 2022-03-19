@@ -10,7 +10,7 @@ namespace Hots_Level_Logger
     /// <summary>
     /// Manages Discord logging.
     /// </summary>
-    public static class Discord
+    internal static class Discord
     {
         private static bool ready = false;
         private static bool initialized = false;
@@ -27,7 +27,7 @@ namespace Hots_Level_Logger
         /// </summary>
         /// <param name="channelId">Hots channel ID.</param>
         /// <param name="token">Discord bot token.</param>
-        public static async Task Init(ulong channelId, string token)
+        internal static async Task Init(ulong channelId, string token)
         {
             // Logger can only be initialized once
             if (initialized)
@@ -67,18 +67,39 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Determines whether a connection to Discord has been established and logging can be used.
         /// </summary>
-        public static bool IsReady()
+        internal static bool IsReady()
         {
             return ready;
         }
 
-        public static void Log(string message)
+        /// <summary>
+        /// Sends a message to the discord channel.
+        /// </summary>
+        /// <param name="message">Message to be sent.</param>
+        internal static void Log(string message)
         {
             channel.SendMessageAsync(message);
             Thread.Sleep(10);
+        }
 
-            #region Embed (Commented out)
-            /*
+        /// <summary>
+        /// Sends a message with an attached file to the discord channel.
+        /// </summary>
+        /// <param name="message">Message to be sent.</param>
+        /// <param name="filepath">Path to the file to be sent.</param>
+        internal static void LogFile(string message, string filepath)
+        {
+            channel.SendFileAsync(filepath, message);
+            Thread.Sleep(10);
+        }
+
+#if DEBUG
+//#else
+        /// <summary>
+        /// Sends a message with an attached embed to the discord channel. (Not implemented properly)
+        /// </summary>
+        internal static void LogEmbed()
+        {
             EmbedAuthorBuilder author = new EmbedAuthorBuilder()
             {
                 Name = "Hots Level Logger",
@@ -121,10 +142,10 @@ namespace Hots_Level_Logger
                 Timestamp = DateTime.Now,
                 Color = Color.Magenta
             }.Build();
-            channel.SendMessageAsync(message, false, embed);
-            */
-            #endregion Embed (Commented out)
+            channel.SendMessageAsync("Embed Message", false, embed);
         }
+#endif
+
 
         /// <summary>
         /// Handles logs initialized by the Discord API.

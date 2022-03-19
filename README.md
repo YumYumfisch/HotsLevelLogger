@@ -1,8 +1,8 @@
 # Heroes of the Storm - Level Logger
 ## About
 This is a tool that captures screenshots of players during the loading screen of the game `Heroes of the Storm`.  
-The tool will analse their levels using using `IronOCR`, a library for optical character recognition.  
-Discord integration is used to automatically log these levels and screenshots into a discord channel if their level is a funny number.  
+The tool will analse their levels using using `Tesseract`, an optical character recognition engine.  
+Discord integration is used to automatically log these levels and screenshots into a discord channel.  
 
 ## How to use
 It should be as simple as running `HotsLevelLogger.exe` after making sure the config file exists.  

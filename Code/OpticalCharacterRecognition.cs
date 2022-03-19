@@ -1,10 +1,9 @@
-﻿using IronOcr;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace Hots_Level_Logger
 {
     /// <summary>
-    /// Handles image analysis using IronOCR and Tesseract libraries.
+    /// Handles Optical Character Recognition using Tesseract.
     /// </summary>
     public static class OpticalCharacterRecognition
     {
@@ -15,28 +14,8 @@ namespace Hots_Level_Logger
         /// <returns>The string of digits recognized in the image.</returns>
         public static int GetNumber(Bitmap bitmap, out double confidence)
         {
-            TesseractConfiguration config = new TesseractConfiguration
-            {
-                EngineMode = TesseractEngineMode.Default,
-                PageSegmentationMode = TesseractPageSegmentationMode.SingleWord,
-                ReadBarCodes = false,
-                WhiteListCharacters = "0123456789"
-            };
-            IronTesseract ocr = new IronTesseract(config);
-
-            OcrResult result;
-            using (OcrInput input = new OcrInput(bitmap))
-            {
-                input.MinimumDPI = null;
-                result = ocr.Read(input);
-            }
-
-            confidence = result.Confidence;
-            if (result.Text.Trim() == "")
-            {
-                return 0;
-            }
-            return int.Parse(result.Text.Trim());
+            confidence = 0;
+            return 0;
         }
     }
 }

@@ -6,14 +6,16 @@
 		<RootNamespace>Hots_Level_Logger</RootNamespace>
 		<ApplicationIcon>Zergling.ico</ApplicationIcon>
 		<Authors>YumYumFisch</Authors>
-		<Description>Der Hots Level Logger loggt Level aus Hots.</Description>
+		<Description>HotS Level Logger loggs levels from HotS.</Description>
 		<Copyright>2022</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Discord.Net" Version="3.4.1" />
-		<PackageReference Include="IronOcr" Version="2022.1.0" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+		<PackageReference Include="Tesseract" Version="4.1.1" />
+		<PackageReference Include="Tesseract.Data.English" Version="4.0.0" />
+		<PackageReference Include="Tesseract.Drawing" Version="4.1.1" />
 	</ItemGroup>
 
 </Project>

@@ -88,6 +88,7 @@ namespace Hots_Level_Logger
             #endregion Discord Setup
             Console.WriteLine("Setup Complete.");
 
+#if !DEBUG
             #region Screenshot Areas
             List<Rectangle> levelAreas = new List<Rectangle> {
                 new Rectangle(new Point(BorderPosLevelXLeft, BorderPosLevelY1), LevelAreaSize),
@@ -195,6 +196,41 @@ namespace Hots_Level_Logger
                 Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
                 Console.WriteLine();
             }
+#else
+            Console.WriteLine("Testing OCR...");
+
+            DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
+            int errors = 0;
+            foreach (FileInfo file in folder.GetFiles("*.png"))
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine(file.Name);
+
+                int fileLevel = int.Parse(file.Name.Split('_')[0]);
+
+                Bitmap LevelCaptureBmp = Image.FromFile(file.FullName) as Bitmap;
+                Bitmap LevelProcessedBmp = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(LevelCaptureBmp));
+                int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+
+                if (fileLevel == ocrLevel)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    errors++;
+                }
+                Console.WriteLine($"File: {fileLevel}, OCR: {ocrLevel}");
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine();
+            Console.WriteLine("Debugging complete.");
+            Console.WriteLine($"Errors: {errors}/{folder.GetFiles("*.png").Length}");
+            Console.WriteLine("Press any key to end the program.");
+            Console.ReadKey(true);
+#endif
         }
 
         /// <summary>

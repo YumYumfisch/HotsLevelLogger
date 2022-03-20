@@ -88,7 +88,11 @@ namespace Hots_Level_Logger
             #endregion Discord Setup
             Console.WriteLine("Setup Complete.");
 
-#if !DEBUG
+#if DEBUG
+            DebugOCR();
+            return;
+#endif
+
             #region Screenshot Areas
             List<Rectangle> levelAreas = new List<Rectangle> {
                 new Rectangle(new Point(BorderPosLevelXLeft, BorderPosLevelY1), LevelAreaSize),
@@ -144,7 +148,7 @@ namespace Hots_Level_Logger
                 {
                     // Capture and analyze screen
                     Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
-                    Bitmap LevelProcessedBmp = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(LevelCaptureBmp));
+                    Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                     levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
 
                     // Save files
@@ -196,7 +200,14 @@ namespace Hots_Level_Logger
                 Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
                 Console.WriteLine();
             }
-#else
+        }
+
+#if DEBUG
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void DebugOCR()
+        {
             Console.WriteLine("Testing OCR...");
 
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
@@ -209,7 +220,7 @@ namespace Hots_Level_Logger
                 int fileLevel = int.Parse(file.Name.Split('_')[0]);
 
                 Bitmap LevelCaptureBmp = Image.FromFile(file.FullName) as Bitmap;
-                Bitmap LevelProcessedBmp = ImageManipulation.ConnectedComponentAnalysis(ImageManipulation.SeparateDigits(LevelCaptureBmp));
+                Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                 int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
 
                 if (fileLevel == ocrLevel)
@@ -230,8 +241,8 @@ namespace Hots_Level_Logger
             Console.WriteLine($"Errors: {errors}/{folder.GetFiles("*.png").Length}");
             Console.WriteLine("Press any key to end the program.");
             Console.ReadKey(true);
-#endif
         }
+#endif
 
         /// <summary>
         /// Determines whether a number is a funny number.

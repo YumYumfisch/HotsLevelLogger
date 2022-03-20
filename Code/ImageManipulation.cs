@@ -6,18 +6,29 @@ using System.Linq;
 namespace Hots_Level_Logger
 {
     /// <summary>
-    /// Handles image manipulation to improve them for OCR.
+    /// Handles image manipulation to preprocess them for OCR.
     /// </summary>
     public static class ImageManipulation
     {
+        /// <summary>
+        /// Processes an image of a player level to prepare it for OCR.
+        /// Binarizes and denoises the image and adds spacing between digits.
+        /// </summary>
+        /// <param name="source">Image to be processed.</param>
+        /// <returns>Processed image with black digits on white background.</returns>
+        public static Bitmap PrepareImage(Bitmap source)
+        {
+            return ConnectedComponentAnalysis(SeparateDigits(source));
+        }
+
         /// <summary>
         /// Sets every pixel to black if it has a valid color.
         /// Otherwise it will be set to white.
         /// Adds additional padding between digits.
         /// </summary>
-        /// <param name="source">Image to be manipulated.</param>
+        /// <param name="source">Image to be processed.</param>
         /// <returns>Binarized (Black and White) bitmap with numbers in black on a white background.</returns>
-        public static Bitmap SeparateDigits(Bitmap source)
+        private static Bitmap SeparateDigits(Bitmap source)
         {
             Bitmap output = new Bitmap(source.Width + 8, source.Height);
 
@@ -80,9 +91,9 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Removes connected components with less than 10 pixels.
         /// </summary>
-        /// <param name="bitmap">Binarized Bitmap (Black foreground, white background)</param>
+        /// <param name="bitmap">Binarized (black pixels on white background) Bitmap to be denoised.</param>
         /// <returns>Denoised bitmap</returns>
-        public static Bitmap ConnectedComponentAnalysis(Bitmap bitmap)
+        private static Bitmap ConnectedComponentAnalysis(Bitmap bitmap)
         {
             int nextLabel = 1;
             int[,] pixelLabels = new int[bitmap.Width, bitmap.Height];

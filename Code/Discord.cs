@@ -1,9 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if DEBUG
+using System.Collections.Generic;
+#endif
 
 namespace Hots_Level_Logger
 {
@@ -18,9 +21,11 @@ namespace Hots_Level_Logger
         private static SocketTextChannel channel;
         private static DiscordSocketClient client;
 
+#if DEBUG
         private const string rickroll = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
         private const string icon = "https://cdn.discordapp.com/attachments/538805766719668284/847167411400343562/Master512.png";
         private const string horizontalLine = "\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_\\_";
+#endif
 
         /// <summary>
         /// Initializes Discord logger.
@@ -39,7 +44,7 @@ namespace Hots_Level_Logger
             if (channelId == 0 || token == null || token == "")
             {
                 initialized = false;
-                throw new ArgumentException();
+                return;
             }
             Discord.channelId = channelId;
 
@@ -94,7 +99,6 @@ namespace Hots_Level_Logger
         }
 
 #if DEBUG
-//#else
         /// <summary>
         /// Sends a message with an attached embed to the discord channel. (Not implemented properly)
         /// </summary>

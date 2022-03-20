@@ -87,9 +87,9 @@ namespace Hots_Level_Logger
                 return false;
             }
         }
-
+         
         /// <summary>
-        /// Removes connected components with less than 10 pixels.
+        /// Removes connected components that are too small to be a digit.
         /// </summary>
         /// <param name="bitmap">Binarized (black pixels on white background) Bitmap to be denoised.</param>
         /// <returns>Denoised bitmap</returns>

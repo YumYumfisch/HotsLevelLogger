@@ -159,7 +159,7 @@ namespace Hots_Level_Logger
                     // Log funny numbers
                     if (IsFunnyNumber(levels[i]))
                     {
-                        Discord.LogFile(levels[i].ToString(), $"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
+                        Discord.LogFile($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
                     }
 
                     // Process additional information

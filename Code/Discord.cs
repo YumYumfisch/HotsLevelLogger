@@ -90,12 +90,21 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Sends a message with an attached file to the discord channel.
         /// </summary>
+        /// <param name="filepath">Path of the file to be sent.</param>
         /// <param name="message">Message to be sent.</param>
-        /// <param name="filepath">Path to the file to be sent.</param>
-        internal static void LogFile(string message, string filepath)
+        internal static void LogFile(string filepath, string message)
         {
             channel.SendFileAsync(filepath, message);
             Thread.Sleep(10);
+        }
+
+        /// <summary>
+        /// Sends a file to the discord channel.
+        /// </summary>
+        /// <param name="filepath">Path of the file to be sent.</param>
+        internal static void LogFile(string filepath)
+        {
+            LogFile(filepath, "");
         }
 
 #if DEBUG

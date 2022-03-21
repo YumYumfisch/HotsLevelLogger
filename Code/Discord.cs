@@ -30,9 +30,9 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Initializes Discord logger.
         /// </summary>
-        /// <param name="channelId">Hots channel ID.</param>
         /// <param name="token">Discord bot token.</param>
-        internal static async Task Init(ulong channelId, string token)
+        /// <param name="channelId">ID of the channel where messages will be sent to.</param>
+        internal static async Task Init(string token, ulong channelId)
         {
             // Logger can only be initialized once
             if (initialized)

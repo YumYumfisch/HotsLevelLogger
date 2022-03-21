@@ -21,9 +21,9 @@ namespace Hots_Level_Logger
         private static readonly string screenshotPlayerFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}PlayerLogs";
 
         /// <summary>
-        /// Path to the text file that stores the token of the discord bot.
+        /// Path to the text file that stores the token of the discord bot and the discord channel.
         /// </summary>
-        private static readonly string TokenFile = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}token.txt";
+        private static readonly string DiscordConfig = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DiscordConfig.txt";
 
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
@@ -59,6 +59,7 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Entry point for the application.
         /// </summary>
+        /// <param name="args">Discord Config. Index 0: Token, Index 1: ChannelID</param>
         public static void Main(string[] args)
         {
             #region Console Setup
@@ -67,16 +68,21 @@ namespace Hots_Level_Logger
             Console.ForegroundColor = ConsoleColor.Green;
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
-            #region Discord Setup
-            if (!File.Exists(TokenFile))
+
+            if (!File.Exists(DiscordConfig))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Error 404: token.txt not found.");
+                Console.WriteLine($"Error 404: DiscordConfig.txt not found.");
                 Console.ReadLine();
                 return;
             }
 
-            _ = Discord.Init(928355348123885588, File.ReadAllText(TokenFile).Trim());
+            #region Discord Setup
+            if (args == null || args.Length == 0)
+            {
+                args = File.ReadAllLines(DiscordConfig);
+            }
+            _ = Discord.Init(args[0].Split(';')[0].Trim(), ulong.Parse(args[1].Split(';')[0].Trim()));
 
             while (!Discord.IsReady())
             {

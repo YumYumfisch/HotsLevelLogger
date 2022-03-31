@@ -134,6 +134,7 @@ namespace Hots_Level_Logger
                 Console.ReadLine();
 
                 Console.WriteLine("Capturing...");
+                Console.WriteLine();
 
                 if (!Directory.Exists(screenshotLevelFolder))
                 {
@@ -219,34 +220,46 @@ namespace Hots_Level_Logger
             Console.WriteLine("Testing OCR...");
 
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
-            int errors = 0;
+            List<string> errorStrings = new List<string>();
             foreach (FileInfo file in folder.GetFiles("*.png"))
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(file.Name);
+                Console.Write(file.Name);
 
                 int fileLevel = int.Parse(file.Name.Split('_')[0]);
 
                 Bitmap LevelCaptureBmp = System.Drawing.Image.FromFile(file.FullName) as Bitmap;
                 Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                 int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                string statistics;
 
                 if (fileLevel == ocrLevel)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
+                    statistics = $" File: {fileLevel}, OCR: {ocrLevel}";
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    errors++;
+                    statistics = $" File: {fileLevel}, OCR: {ocrLevel}, Difference: {Math.Abs(fileLevel - ocrLevel)}";
+                    errorStrings.Add(file.Name + statistics);
                 }
-                Console.WriteLine($"File: {fileLevel}, OCR: {ocrLevel}");
+                Console.WriteLine(statistics);
             }
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
             Console.WriteLine("Debugging complete.");
-            Console.WriteLine($"Errors: {errors}/{folder.GetFiles("*.png").Length}");
+            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({errorStrings.Count / folder.GetFiles("*.png").Length}%)");
+            Console.WriteLine();
+            Console.WriteLine("Files containing errors:");
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (string error in errorStrings)
+            {
+                Console.WriteLine(error);
+            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine();
             Console.WriteLine("Press any key to end the program.");
             Console.ReadKey(true);
         }

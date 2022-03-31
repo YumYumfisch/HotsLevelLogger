@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -150,6 +151,7 @@ namespace Hots_Level_Logger
 
                 Console.Write("Levels: {");
                 string discordMessage = "```h\r\nLevels: {";
+                List<FileAttachment> files = new List<FileAttachment>();
                 for (int i = 0; i < levelAreas.Count; i++)
                 {
                     // Capture and analyze screen
@@ -165,7 +167,7 @@ namespace Hots_Level_Logger
                     // Log funny numbers
                     if (IsFunnyNumber(levels[i]))
                     {
-                        Discord.LogFile($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
+                        files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}", description: levels[i].ToString()));
                     }
 
                     // Process additional information
@@ -200,7 +202,7 @@ namespace Hots_Level_Logger
                 string stats = $"\r\nHighest level = {max}\r\nLowest  level = {min}\r\nAverage level = {sum / levelAreas.Count}";
                 Console.WriteLine(stats);
                 discordMessage += $"{stats}\r\n```";
-                Discord.Log(discordMessage);
+                Discord.LogFiles(files, discordMessage);
 
                 Console.WriteLine();
                 Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
@@ -225,7 +227,7 @@ namespace Hots_Level_Logger
 
                 int fileLevel = int.Parse(file.Name.Split('_')[0]);
 
-                Bitmap LevelCaptureBmp = Image.FromFile(file.FullName) as Bitmap;
+                Bitmap LevelCaptureBmp = System.Drawing.Image.FromFile(file.FullName) as Bitmap;
                 Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                 int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
 

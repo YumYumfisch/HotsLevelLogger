@@ -1,12 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-#if DEBUG
-using System.Collections.Generic;
-#endif
 
 namespace Hots_Level_Logger
 {
@@ -92,19 +89,20 @@ namespace Hots_Level_Logger
         /// </summary>
         /// <param name="filepath">Path of the file to be sent.</param>
         /// <param name="message">Message to be sent.</param>
-        internal static void LogFile(string filepath, string message)
+        internal static void LogFile(string filepath, string message = "")
         {
             channel.SendFileAsync(filepath, message);
             Thread.Sleep(10);
         }
 
         /// <summary>
-        /// Sends a file to the discord channel.
+        /// Sends a message with the attached files to the discord channel.
         /// </summary>
-        /// <param name="filepath">Path of the file to be sent.</param>
-        internal static void LogFile(string filepath)
+        /// <param name="attachments">List of the Files to be sent.</param>
+        /// <param name="message">Message to be sent.</param>
+        internal static void LogFiles(IEnumerable<FileAttachment> attachments, string message = "")
         {
-            LogFile(filepath, "");
+            channel.SendFilesAsync(attachments, message);
         }
 
 #if DEBUG
@@ -158,7 +156,6 @@ namespace Hots_Level_Logger
             channel.SendMessageAsync("Embed Message", false, embed);
         }
 #endif
-
 
         /// <summary>
         /// Handles logs initialized by the Discord API.

@@ -146,12 +146,10 @@ namespace Hots_Level_Logger
                 }
 
                 int[] levels = new int[levelAreas.Count];
-                int sum = 0;
-                int max = 0;
-                int min = 0;
+                int[] levelsLeft = new int[5];
+                int[] levelsRight = new int[5];
 
                 Console.Write("Levels: {");
-                string discordMessage = "```h\r\nLevels: {";
                 List<FileAttachment> files = new List<FileAttachment>();
                 for (int i = 0; i < levelAreas.Count; i++)
                 {
@@ -159,6 +157,15 @@ namespace Hots_Level_Logger
                     Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
                     Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                     levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+
+                    if (i < 5)
+                    {
+                        levelsLeft[i] = levels[i];
+                    }
+                    else
+                    {
+                        levelsRight[i - 5] = levels[i];
+                    }
 
                     // Save files
                     string filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
@@ -171,39 +178,78 @@ namespace Hots_Level_Logger
                         files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}", description: levels[i].ToString()));
                     }
 
-                    // Process additional information
-                    sum += levels[i];
-
-                    if (levels[i] > max)
-                    {
-                        max = levels[i];
-                    }
-
-                    if (min == 0)
-                    {
-                        min = levels[i];
-                    }
-                    else if (levels[i] != 0 && levels[i] < min)
-                    {
-                        min = levels[i];
-                    }
-
+                    // Log Levels during analysis
                     if (i == levelAreas.Count - 1)
                     {
                         Console.WriteLine(levels[i] + "}");
-                        discordMessage += levels[i] + "}\r\n";
                     }
                     else
                     {
                         Console.Write($"{levels[i]}, ");
-                        discordMessage += $"{levels[i]}, ";
                     }
                 }
 
-                string stats = $"\r\nHighest level = {max}\r\nLowest  level = {min}\r\nAverage level = {sum / levelAreas.Count}";
-                Console.WriteLine(stats);
+                #region Discord Message
+                // Game
+                string discordMessage = "Game:\r\n```h\r\nLevels: {";
+                int sum = 0;
+                for (int i = 0; i < levels.Length; i++)
+                {
+                    sum += levels[i];
+                    if (i == levels.Length - 1)
+                    {
+                        discordMessage += levels[i] + "}\r\n\r\n";
+                    }
+                    else
+                    {
+                        discordMessage += $"{levels[i]}, ";
+                    }
+                }
+                Array.Sort(levels);
+                string stats = $"Highest level = {levels[levels.Length - 1]}\r\nAverage level = {sum / levelAreas.Count}\r\nLowest  level = {levels[0]}";
                 discordMessage += $"{stats}\r\n```";
+                Console.WriteLine(stats);
+
+                // Left
+                Array.Sort(levelsLeft);
+                discordMessage += "\r\nLeft Team:\r\n```h\r\nLevels: {";
+                sum = 0;
+                for (int i = 0; i < levelsLeft.Length; i++)
+                {
+                    sum += levelsLeft[i];
+                    if (i == levelsLeft.Length - 1)
+                    {
+                        discordMessage += levelsLeft[i] + "}\r\n\r\n";
+                    }
+                    else
+                    {
+                        discordMessage += $"{levelsLeft[i]}, ";
+                    }
+                }
+                stats = $"Highest level = {levelsLeft[levelsLeft.Length - 1]}\r\nAverage level = {sum / levelsLeft.Length}\r\nLowest  level = {levelsLeft[0]}";
+                discordMessage += $"{stats}\r\n```";
+
+                // Right
+                Array.Sort(levelsRight);
+                discordMessage += "\r\nRight Team:\r\n```h\r\nLevels: {";
+                sum = 0;
+                for (int i = 0; i < levelsRight.Length; i++)
+                {
+                    sum += levelsRight[i];
+                    if (i == levelsRight.Length - 1)
+                    {
+                        discordMessage += levelsRight[i] + "}\r\n\r\n";
+                    }
+                    else
+                    {
+                        discordMessage += $"{levelsRight[i]}, ";
+                    }
+                }
+                stats = $"Highest level = {levelsRight[levelsRight.Length - 1]}\r\nAverage level = {sum / levelsRight.Length}\r\nLowest  level = {levelsRight[0]}";
+                discordMessage += $"{stats}\r\n```";
+
                 Discord.LogFiles(files, discordMessage);
+                #endregion Discord Message
 
                 Console.WriteLine();
                 Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");

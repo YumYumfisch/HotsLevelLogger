@@ -46,7 +46,17 @@ namespace Hots_Level_Logger
             Discord.channelId = channelId;
 
             // Start bot
-            client = new DiscordSocketClient();
+            DiscordSocketConfig socketConfig = new DiscordSocketConfig()
+            {
+                AlwaysDownloadDefaultStickers = false,
+                AlwaysDownloadUsers = false,
+                AlwaysResolveStickers = false,
+
+                LogGatewayIntentWarnings = false
+                // Alternatively, the following line works too instead of ignoring the warnings, but then the bot takes longer from startup until ready.
+                //GatewayIntents = GatewayIntents.None
+            };
+            client = new DiscordSocketClient(socketConfig);
             client.Log += DiscordLog;
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();

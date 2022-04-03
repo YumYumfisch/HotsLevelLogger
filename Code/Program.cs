@@ -7,6 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace Hots_Level_Logger
 {
     public static class Program
@@ -287,11 +291,14 @@ namespace Hots_Level_Logger
 
 #if DEBUG
         /// <summary>
-        /// 
+        /// Tests the accuracy of the OCR Library by comparing its results to the filenames of already processed images.
         /// </summary>
         private static void DebugOCR()
         {
             Console.WriteLine("Testing OCR...");
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
             List<string> errorStrings = new List<string>();
@@ -321,9 +328,12 @@ namespace Hots_Level_Logger
                 Console.WriteLine(statistics);
             }
 
+            stopwatch.Stop();
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
             Console.WriteLine("Debugging complete.");
+            Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.ToString()}");
             Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({errorStrings.Count / folder.GetFiles("*.png").Length}%)");
             Console.WriteLine();
             Console.WriteLine("Files containing errors:");

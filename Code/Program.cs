@@ -146,8 +146,6 @@ namespace Hots_Level_Logger
                 }
 
                 int[] levels = new int[levelAreas.Count];
-                int[] levelsLeft = new int[5];
-                int[] levelsRight = new int[5];
 
                 Console.Write("Levels: {");
                 List<FileAttachment> files = new List<FileAttachment>();
@@ -157,15 +155,6 @@ namespace Hots_Level_Logger
                     Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
                     Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
                     levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
-
-                    if (i < 5)
-                    {
-                        levelsLeft[i] = levels[i];
-                    }
-                    else
-                    {
-                        levelsRight[i - 5] = levels[i];
-                    }
 
                     // Save files
                     string filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
@@ -189,72 +178,111 @@ namespace Hots_Level_Logger
                     }
                 }
 
-                #region Discord Message
-                // Game
-                string discordMessage = "Game:\r\n```h\r\nLevels: {";
-                int sum = 0;
-                for (int i = 0; i < levels.Length; i++)
-                {
-                    sum += levels[i];
-                    if (i == levels.Length - 1)
-                    {
-                        discordMessage += levels[i] + "}\r\n\r\n";
-                    }
-                    else
-                    {
-                        discordMessage += $"{levels[i]}, ";
-                    }
-                }
-                Array.Sort(levels);
-                string stats = $"Highest level = {levels[levels.Length - 1]}\r\nAverage level = {sum / levelAreas.Count}\r\nLowest  level = {levels[0]}";
-                discordMessage += $"{stats}\r\n```";
-                Console.WriteLine(stats);
-
-                // Left
-                Array.Sort(levelsLeft);
-                discordMessage += "\r\nLeft Team:\r\n```h\r\nLevels: {";
-                sum = 0;
-                for (int i = 0; i < levelsLeft.Length; i++)
-                {
-                    sum += levelsLeft[i];
-                    if (i == levelsLeft.Length - 1)
-                    {
-                        discordMessage += levelsLeft[i] + "}\r\n\r\n";
-                    }
-                    else
-                    {
-                        discordMessage += $"{levelsLeft[i]}, ";
-                    }
-                }
-                stats = $"Highest level = {levelsLeft[levelsLeft.Length - 1]}\r\nAverage level = {sum / levelsLeft.Length}\r\nLowest  level = {levelsLeft[0]}";
-                discordMessage += $"{stats}\r\n```";
-
-                // Right
-                Array.Sort(levelsRight);
-                discordMessage += "\r\nRight Team:\r\n```h\r\nLevels: {";
-                sum = 0;
-                for (int i = 0; i < levelsRight.Length; i++)
-                {
-                    sum += levelsRight[i];
-                    if (i == levelsRight.Length - 1)
-                    {
-                        discordMessage += levelsRight[i] + "}\r\n\r\n";
-                    }
-                    else
-                    {
-                        discordMessage += $"{levelsRight[i]}, ";
-                    }
-                }
-                stats = $"Highest level = {levelsRight[levelsRight.Length - 1]}\r\nAverage level = {sum / levelsRight.Length}\r\nLowest  level = {levelsRight[0]}";
-                discordMessage += $"{stats}\r\n```";
-
-                Discord.LogFiles(files, discordMessage);
-                #endregion Discord Message
-
                 Console.WriteLine();
                 Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
                 Console.WriteLine();
+
+                LogMessage(levels, files);
             }
+        }
+
+        /// <summary>
+        /// Logs the levels in discord and sends the provided files.
+        /// </summary>
+        /// <param name="levels">Unsorted array of levels.</param>
+        /// <param name="files">Files to be sent with the message.</param>
+        private static void LogMessage(int[] levels, IEnumerable<FileAttachment> files)
+        {
+            int[] levelsLeft = { levels[0], levels[1], levels[2], levels[3], levels[4] };
+            int[] levelsRight = { levels[5], levels[6], levels[7], levels[8], levels[9] };
+
+            Array.Sort(levels);
+            Array.Sort(levelsLeft);
+            Array.Sort(levelsRight);
+
+            int avgLeft = 0;
+            int avgGame = 0;
+            int avgRight = 0;
+
+            foreach (int level in levelsLeft)
+            {
+                avgLeft += level;
+            }
+            foreach (int level in levels)
+            {
+                avgGame += level;
+            }
+            foreach (int level in levelsRight)
+            {
+                avgRight += level;
+            }
+
+            avgLeft /= levelsLeft.Length;
+            avgGame /= levels.Length;
+            avgRight /= levelsRight.Length;
+
+            string hl = levelsLeft[^1].ToString().PadLeft(4);
+            string hg = levels[^1].ToString().PadLeft(4);
+            string hr = levelsRight[^1].ToString().PadLeft(4);
+            string al = avgLeft.ToString().PadLeft(4);
+            string ag = avgGame.ToString().PadLeft(4); ;
+            string ar = avgRight.ToString().PadLeft(4); ;
+            string ll = levelsLeft[0].ToString().PadLeft(4);
+            string lg = levels[0].ToString().PadLeft(4); ;
+            string lr = levelsRight[0].ToString().PadLeft(4); ;
+
+            string message = $@"```h
+[{string.Join(", ", levels)}]
+[{string.Join(", ", levelsLeft)}] vs [{string.Join(", ", levelsRight)}]
+
+┌───────┬────┬────┬─────┐
+│levels │left│game│right│
+├───────┼────┼────┼─────┤
+│highest│{hl}│{hg}│{hr} │
+│average│{al}│{ag}│{ar} │
+│lowest │{ll}│{lg}│{lr} │
+└───────┴────┴────┴─────┘
+```";
+
+            Discord.LogFiles(files, message);
+            Console.Write(message.Replace("```h", "").Replace("`", ""));
+            return;
+        }
+
+        /// <summary>
+        /// Determines whether a number is a funny number.
+        /// </summary>
+        /// <param name="number">Number to be analyzed.</param>
+        private static bool IsFunnyNumber(int number)
+        {
+            // High or low level
+            if (number < 100 || number > 1000)
+            {
+                return true;
+            }
+
+            // Funny number
+            string numberString = number.ToString();
+            int[] funnyNumbers = { 187, 246, 314, 404, 418, 420 };
+            if (funnyNumbers.Contains(number) || number % 100 == 0 || numberString.Contains("69"))
+            {
+                return true;
+            }
+
+            // Same digits
+            if (numberString[0] == numberString[1] && numberString[0] == numberString[2])
+            {
+                return true;
+            }
+
+            // Increasing or decreasing digits
+            if ((numberString[0] == numberString[1] + 1 && numberString[0] == numberString[2] + 2) ||
+                (numberString[0] == numberString[1] - 1 && numberString[0] == numberString[2] - 2))
+            {
+                return true;
+            }
+
+            return false;
         }
 
 #if DEBUG
@@ -310,41 +338,5 @@ namespace Hots_Level_Logger
             Console.ReadKey(true);
         }
 #endif
-
-        /// <summary>
-        /// Determines whether a number is a funny number.
-        /// </summary>
-        /// <param name="number">Number to be analyzed.</param>
-        private static bool IsFunnyNumber(int number)
-        {
-            // High or low level
-            if (number < 100 || number > 1000)
-            {
-                return true;
-            }
-
-            // Funny number
-            string numberString = number.ToString();
-            int[] funnyNumbers = { 187, 246, 314, 404, 418, 420 };
-            if (funnyNumbers.Contains(number) || number % 100 == 0 || numberString.Contains("69"))
-            {
-                return true;
-            }
-
-            // Same digits
-            if (numberString[0] == numberString[1] && numberString[0] == numberString[2])
-            {
-                return true;
-            }
-
-            // Increasing or decreasing digits
-            if ((numberString[0] == numberString[1] + 1 && numberString[0] == numberString[2] + 2) ||
-                (numberString[0] == numberString[1] - 1 && numberString[0] == numberString[2] - 2))
-            {
-                return true;
-            }
-
-            return false;
-        }
     }
 }

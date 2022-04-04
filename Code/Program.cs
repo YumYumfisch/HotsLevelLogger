@@ -5,9 +5,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+#if !DEBUG
 using System.Threading;
-
-#if DEBUG
+#else
 using System.Diagnostics;
 #endif
 
@@ -19,6 +19,13 @@ namespace Hots_Level_Logger
         /// Folder where the number screenshots will be saved to.
         /// </summary>
         private static readonly string screenshotLevelFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}LevelLogs";
+
+#if DEBUG
+        /// <summary>
+        /// Folder where the preprocessed number screenshots will be saved to.
+        /// </summary>
+        private static readonly string screenshotLevelDebugginFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
+#endif
 
         /// <summary>
         /// Folder where the player screenshots will be saved to.
@@ -82,6 +89,7 @@ namespace Hots_Level_Logger
                 return;
             }
 
+#if !DEBUG
             #region Discord Setup
             if (args == null || args.Length == 0)
             {
@@ -97,6 +105,7 @@ namespace Hots_Level_Logger
             Thread.Sleep(10);
             Console.WriteLine();
             #endregion Discord Setup
+#endif
             Console.WriteLine("Setup Complete.");
 
 #if DEBUG
@@ -297,6 +306,14 @@ namespace Hots_Level_Logger
         {
             Console.WriteLine("Testing OCR...");
 
+            bool saveDebuggingScreenshots = false;
+            if (!Directory.Exists(screenshotLevelDebugginFolder))
+            {
+                Console.WriteLine("Also saving debugging files...");
+                saveDebuggingScreenshots = true;
+                Directory.CreateDirectory(screenshotLevelDebugginFolder);
+            }
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -311,7 +328,13 @@ namespace Hots_Level_Logger
 
                 Bitmap LevelCaptureBmp = System.Drawing.Image.FromFile(file.FullName) as Bitmap;
                 Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
+                LevelCaptureBmp.Dispose();
+                if (saveDebuggingScreenshots)
+                {
+                    LevelProcessedBmp.Save($"{screenshotLevelDebugginFolder}{Path.DirectorySeparatorChar}{file.Name}");
+                }
                 int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                LevelProcessedBmp.Dispose();
                 string statistics;
 
                 if (fileLevel == ocrLevel)
@@ -344,8 +367,10 @@ namespace Hots_Level_Logger
             }
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
-            Console.WriteLine("Press any key to end the program.");
-            Console.ReadKey(true);
+            Console.WriteLine("Press [Enter] to end the program.");
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.ReadLine();
+            Console.ForegroundColor = ConsoleColor.Green;
         }
 #endif
     }

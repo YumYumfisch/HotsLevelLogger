@@ -19,7 +19,7 @@ namespace Hots_Level_Logger
         public static Bitmap PrepareImage(Bitmap source)
         {
 #if DEBUG
-            return ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source)))));
+            return Binarize(ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source))))));
 #else
             return Binarize(ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source))))));
 #endif
@@ -32,8 +32,53 @@ namespace Hots_Level_Logger
         /// <returns>Bitmap with colorfull digits on white background.</returns>
         private static Bitmap CompareDigitColors(Bitmap source)
         {
-            // TODO
-            return source;
+            int hueRange = 15; // Determines the amount that the hue can differ from the average hue of the first digit
+
+            // Get average hue of columns 3 to 12
+            double averageHue = 0;
+            int pixelCounter = 0;
+            for (int x = 3; x < 13; x++)
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
+                    // Ignore background
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        continue;
+                    }
+
+                    averageHue += source.GetPixel(x, y).GetHue();
+                    pixelCounter++;
+                }
+            }
+            averageHue /= pixelCounter;
+
+            // Remove hues that differ from the average
+            Bitmap output = new Bitmap(source.Width, source.Height);
+            for (int x = 0; x < source.Width; x++)
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
+                    // Ignore background
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        output.SetPixel(x, y, Color.White);
+                        continue;
+                    }
+
+                    float hue = source.GetPixel(x, y).GetHue();
+                    if (hue < averageHue - hueRange || hue > averageHue + hueRange)
+                    {
+                        output.SetPixel(x, y, Color.White);
+                    }
+                    else
+                    {
+                        output.SetPixel(x, y, source.GetPixel(x, y));
+                    }
+                }
+            }
+
+            return output;
         }
 
         /// <summary>

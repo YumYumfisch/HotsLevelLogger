@@ -357,7 +357,7 @@ namespace Hots_Level_Logger
             Console.WriteLine();
             Console.WriteLine("Debugging complete.");
             Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.ToString()}");
-            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({errorStrings.Count / folder.GetFiles("*.png").Length}%)");
+            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({(100.0 * errorStrings.Count / folder.GetFiles("*.png").Length).ToString("00.00")}%)");
             Console.WriteLine();
             Console.WriteLine("Files containing errors:");
             Console.ForegroundColor = ConsoleColor.Red;

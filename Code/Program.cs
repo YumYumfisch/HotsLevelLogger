@@ -25,8 +25,7 @@ namespace Hots_Level_Logger
         /// Folder where the preprocessed number screenshots will be saved to.
         /// </summary>
         private static readonly string screenshotLevelDebugginFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
-#endif
-
+#else
         /// <summary>
         /// Folder where the player screenshots will be saved to.
         /// </summary>
@@ -67,6 +66,7 @@ namespace Hots_Level_Logger
         private const int BorderPosPlayerY4 = 586;
         private const int BorderPosPlayerY5 = 719;
         #endregion Border Pixel Position Constants
+#endif
 
         /// <summary>
         /// Entry point for the application.
@@ -81,6 +81,8 @@ namespace Hots_Level_Logger
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
 
+#if !DEBUG
+            #region Discord Setup
             if (!File.Exists(DiscordConfig))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -89,8 +91,6 @@ namespace Hots_Level_Logger
                 return;
             }
 
-#if !DEBUG
-            #region Discord Setup
             if (args == null || args.Length == 0)
             {
                 args = File.ReadAllLines(DiscordConfig);
@@ -110,9 +110,7 @@ namespace Hots_Level_Logger
 
 #if DEBUG
             DebugOCR();
-            return;
-#endif
-
+#else
             #region Screenshot Areas
             List<Rectangle> levelAreas = new List<Rectangle> {
                 new Rectangle(new Point(BorderPosLevelXLeft, BorderPosLevelY1), LevelAreaSize),
@@ -197,8 +195,10 @@ namespace Hots_Level_Logger
 
                 LogMessage(levels, files);
             }
+#endif
         }
 
+#if !DEBUG
         /// <summary>
         /// Logs the levels in discord and sends the provided files.
         /// </summary>
@@ -298,11 +298,11 @@ namespace Hots_Level_Logger
             return false;
         }
 
-#if DEBUG
+#else
         /// <summary>
         /// Tests the accuracy of the OCR Library by comparing its results to the filenames of already processed images.
         /// </summary>
-        private static void DebugOCR()
+        private static void DebugOCR(bool overrideOCR = false)
         {
             Console.WriteLine("Testing OCR...");
 
@@ -333,7 +333,7 @@ namespace Hots_Level_Logger
                 {
                     LevelProcessedBmp.Save($"{screenshotLevelDebugginFolder}{Path.DirectorySeparatorChar}{file.Name}");
                 }
-                int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
                 LevelProcessedBmp.Dispose();
                 string statistics;
 

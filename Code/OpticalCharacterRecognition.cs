@@ -28,11 +28,25 @@ namespace Hots_Level_Logger
                 // Character recognition
                 using (Page page = engine.Process(bitmap, PageSegMode.SingleWord))
                 {
-                    text = page.GetText();
+                    text = page.GetText().Trim();
                     confidence = page.GetMeanConfidence();
                 }
             }
-            return int.Parse(text);
+
+
+            if (text == null || text == "")
+            {
+                return 0;
+            }
+            try
+            {
+                // Try catch is still necessary because even if null and "" is filtered out, the text can still contain spaces between digits if the image isnt processed properly during debugging.
+                return int.Parse(text);
+            }
+            catch (System.Exception)
+            {
+                return 0;
+            }
         }
     }
 }

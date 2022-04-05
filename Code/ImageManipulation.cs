@@ -19,9 +19,9 @@ namespace Hots_Level_Logger
         public static Bitmap PrepareImage(Bitmap source)
         {
 #if DEBUG
-            return CompareDigitColors(ValidatePixelColor(SeparateDigits(source)));
+            return ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source)))));
 #else
-            return ConnectedComponentAnalysis(Binarize(CompareDigitColors(ValidatePixelColor(SeparateDigits(source)))));
+            return Binarize(ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source))))));
 #endif
         }
 
@@ -151,8 +151,8 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Removes connected components that are too small to be a digit.
         /// </summary>
-        /// <param name="bitmap">Binarized (black pixels on white background) Bitmap to be denoised.</param>
-        /// <returns>Denoised bitmap</returns>
+        /// <param name="bitmap">Bitmap with white background.</param>
+        /// <returns>Denoised bitmap.</returns>
         private static Bitmap ConnectedComponentAnalysis(Bitmap bitmap)
         {
             int minimumComponentPixelSize = 22; // The smallest digit (1) has 29 pixels
@@ -174,11 +174,11 @@ namespace Hots_Level_Logger
                     }
 
                     List<Point> neighbors = new List<Point>();
-                    if (x > 0 && bitmap.GetPixel(x - 1, y).ToArgb() == Color.Black.ToArgb())
+                    if (x > 0 && bitmap.GetPixel(x - 1, y).ToArgb() != Color.White.ToArgb())
                     {
                         neighbors.Add(new Point(x - 1, y));
                     }
-                    if (y > 0 && bitmap.GetPixel(x, y - 1).ToArgb() == Color.Black.ToArgb())
+                    if (y > 0 && bitmap.GetPixel(x, y - 1).ToArgb() != Color.White.ToArgb())
                     {
                         neighbors.Add(new Point(x, y - 1));
                     }

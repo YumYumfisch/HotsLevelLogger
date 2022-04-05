@@ -5,7 +5,11 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+#if !DEBUG
 using System.Threading;
+#else
+using System.Diagnostics;
+#endif
 
 namespace Hots_Level_Logger
 {
@@ -16,6 +20,12 @@ namespace Hots_Level_Logger
         /// </summary>
         private static readonly string screenshotLevelFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}LevelLogs";
 
+#if DEBUG
+        /// <summary>
+        /// Folder where the preprocessed number screenshots will be saved to.
+        /// </summary>
+        private static readonly string screenshotLevelDebugginFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
+#else
         /// <summary>
         /// Folder where the player screenshots will be saved to.
         /// </summary>
@@ -56,6 +66,7 @@ namespace Hots_Level_Logger
         private const int BorderPosPlayerY4 = 586;
         private const int BorderPosPlayerY5 = 719;
         #endregion Border Pixel Position Constants
+#endif
 
         /// <summary>
         /// Entry point for the application.
@@ -70,6 +81,8 @@ namespace Hots_Level_Logger
             Console.OutputEncoding = Encoding.UTF8;
             #endregion Console Setup
 
+#if !DEBUG
+            #region Discord Setup
             if (!File.Exists(DiscordConfig))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -78,7 +91,6 @@ namespace Hots_Level_Logger
                 return;
             }
 
-            #region Discord Setup
             if (args == null || args.Length == 0)
             {
                 args = File.ReadAllLines(DiscordConfig);
@@ -93,13 +105,12 @@ namespace Hots_Level_Logger
             Thread.Sleep(10);
             Console.WriteLine();
             #endregion Discord Setup
+#endif
             Console.WriteLine("Setup Complete.");
 
 #if DEBUG
             DebugOCR();
-            return;
-#endif
-
+#else
             #region Screenshot Areas
             List<Rectangle> levelAreas = new List<Rectangle> {
                 new Rectangle(new Point(BorderPosLevelXLeft, BorderPosLevelY1), LevelAreaSize),
@@ -184,8 +195,10 @@ namespace Hots_Level_Logger
 
                 LogMessage(levels, files);
             }
+#endif
         }
 
+#if !DEBUG
         /// <summary>
         /// Logs the levels in discord and sends the provided files.
         /// </summary>
@@ -285,13 +298,24 @@ namespace Hots_Level_Logger
             return false;
         }
 
-#if DEBUG
+#else
         /// <summary>
-        /// 
+        /// Tests the accuracy of the OCR Library by comparing its results to the filenames of already processed images.
         /// </summary>
-        private static void DebugOCR()
+        private static void DebugOCR(bool overrideOCR = false)
         {
             Console.WriteLine("Testing OCR...");
+
+            bool saveDebuggingScreenshots = false;
+            if (!Directory.Exists(screenshotLevelDebugginFolder))
+            {
+                Console.WriteLine("Also saving debugging files...");
+                saveDebuggingScreenshots = true;
+                Directory.CreateDirectory(screenshotLevelDebugginFolder);
+            }
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
             List<string> errorStrings = new List<string>();
@@ -304,7 +328,13 @@ namespace Hots_Level_Logger
 
                 Bitmap LevelCaptureBmp = System.Drawing.Image.FromFile(file.FullName) as Bitmap;
                 Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
-                int ocrLevel = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                LevelCaptureBmp.Dispose();
+                if (saveDebuggingScreenshots)
+                {
+                    LevelProcessedBmp.Save($"{screenshotLevelDebugginFolder}{Path.DirectorySeparatorChar}{file.Name}");
+                }
+                int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                LevelProcessedBmp.Dispose();
                 string statistics;
 
                 if (fileLevel == ocrLevel)
@@ -321,10 +351,13 @@ namespace Hots_Level_Logger
                 Console.WriteLine(statistics);
             }
 
+            stopwatch.Stop();
+
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
             Console.WriteLine("Debugging complete.");
-            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({errorStrings.Count / folder.GetFiles("*.png").Length}%)");
+            Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.ToString()}");
+            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({(100.0 * errorStrings.Count / folder.GetFiles("*.png").Length).ToString("00.00")}%)");
             Console.WriteLine();
             Console.WriteLine("Files containing errors:");
             Console.ForegroundColor = ConsoleColor.Red;
@@ -334,8 +367,10 @@ namespace Hots_Level_Logger
             }
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine();
-            Console.WriteLine("Press any key to end the program.");
-            Console.ReadKey(true);
+            Console.WriteLine("Press [Enter] to end the program.");
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.ReadLine();
+            Console.ForegroundColor = ConsoleColor.Green;
         }
 #endif
     }

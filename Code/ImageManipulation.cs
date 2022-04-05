@@ -18,7 +18,93 @@ namespace Hots_Level_Logger
         /// <returns>Processed image with black digits on white background.</returns>
         public static Bitmap PrepareImage(Bitmap source)
         {
-            return ConnectedComponentAnalysis(SeparateDigits(source));
+#if DEBUG
+            return Binarize(ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source))))));
+#else
+            return Binarize(ConnectedComponentAnalysis(CompareDigitColors(ConnectedComponentAnalysis(ValidatePixelColor(SeparateDigits(source))))));
+#endif
+        }
+
+        /// <summary>
+        /// Compares Hue value of pixels to filter parts from profile pictures that have a different color than the digits.
+        /// </summary>
+        /// <param name="source">Bitmap with colorfull digits and noise on white background.</param>
+        /// <returns>Bitmap with colorfull digits on white background.</returns>
+        private static Bitmap CompareDigitColors(Bitmap source)
+        {
+            int hueRange = 15; // Determines the amount that the hue can differ from the average hue of the first digit
+
+            // Get average hue of columns 3 to 12
+            double averageHue = 0;
+            int pixelCounter = 0;
+            for (int x = 3; x < 13; x++)
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
+                    // Ignore background
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        continue;
+                    }
+
+                    averageHue += source.GetPixel(x, y).GetHue();
+                    pixelCounter++;
+                }
+            }
+            averageHue /= pixelCounter;
+
+            // Remove hues that differ from the average
+            Bitmap output = new Bitmap(source.Width, source.Height);
+            for (int x = 0; x < source.Width; x++)
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
+                    // Ignore background
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        output.SetPixel(x, y, Color.White);
+                        continue;
+                    }
+
+                    float hue = source.GetPixel(x, y).GetHue();
+                    if (hue < averageHue - hueRange || hue > averageHue + hueRange)
+                    {
+                        output.SetPixel(x, y, Color.White);
+                    }
+                    else
+                    {
+                        output.SetPixel(x, y, source.GetPixel(x, y));
+                    }
+                }
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Changes every pixel of the bitmap to be black except if it is white.
+        /// </summary>
+        /// <param name="source">Bitmap to be binarized.</param>
+        /// <returns>Binarized bitmap.</returns>
+        private static Bitmap Binarize(Bitmap source)
+        {
+            Bitmap output = new Bitmap(source.Width, source.Height);
+
+            for (int x = 0; x < output.Width; x++)
+            {
+                for (int y = 0; y < output.Height; y++)
+                {
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        output.SetPixel(x, y, Color.White);
+                    }
+                    else
+                    {
+                        output.SetPixel(x, y, Color.Black);
+                    }
+                }
+            }
+            return output;
         }
 
         /// <summary>
@@ -53,10 +139,29 @@ namespace Hots_Level_Logger
                     // Add digits
                     int digitIndex = (x - 3) / 11; // Ignoring border padding and accounting for digit width (7p plus one pixel of extra space each for error corection and one for padding on each side)
                     int pixelShift = digitIndex * 2 + 1; // Accounting for extra padding between digits
+
+                    output.SetPixel(x, y, source.GetPixel(x - pixelShift, y));
+                }
+            }
+            return output;
+        }
+
+        /// <summary>
+        /// Sets every pixel to white that has an invalid color.
+        /// </summary>
+        /// <param name="source">Bitmap to be processed.</param>
+        /// <returns>Validated Bitmap.</returns>
+        private static Bitmap ValidatePixelColor(Bitmap source)
+        {
+            Bitmap output = new Bitmap(source.Width, source.Height);
+            for (int x = 0; x < source.Width; x++)
+            {
+                for (int y = 0; y < source.Height; y++)
+                {
                     // Remove invalid pixels in the area of the digit
-                    if (ValidatePixelColor(source.GetPixel(x - pixelShift, y)))
+                    if (ValidatePixelColor(source.GetPixel(x, y)))
                     {
-                        output.SetPixel(x, y, Color.Black);
+                        output.SetPixel(x, y, source.GetPixel(x, y));
                     }
                     else
                     {
@@ -87,14 +192,16 @@ namespace Hots_Level_Logger
                 return false;
             }
         }
-         
+
         /// <summary>
         /// Removes connected components that are too small to be a digit.
         /// </summary>
-        /// <param name="bitmap">Binarized (black pixels on white background) Bitmap to be denoised.</param>
-        /// <returns>Denoised bitmap</returns>
+        /// <param name="bitmap">Bitmap with white background.</param>
+        /// <returns>Denoised bitmap.</returns>
         private static Bitmap ConnectedComponentAnalysis(Bitmap bitmap)
         {
+            int minimumComponentPixelSize = 22; // The smallest digit (1) has 29 pixels
+
             int nextLabel = 1;
             int[,] pixelLabels = new int[bitmap.Width, bitmap.Height];
             Dictionary<int, List<int>> equivalenceMapping = new Dictionary<int, List<int>>();
@@ -112,11 +219,11 @@ namespace Hots_Level_Logger
                     }
 
                     List<Point> neighbors = new List<Point>();
-                    if (x > 0 && bitmap.GetPixel(x - 1, y).ToArgb() == Color.Black.ToArgb())
+                    if (x > 0 && bitmap.GetPixel(x - 1, y).ToArgb() != Color.White.ToArgb())
                     {
                         neighbors.Add(new Point(x - 1, y));
                     }
-                    if (y > 0 && bitmap.GetPixel(x, y - 1).ToArgb() == Color.Black.ToArgb())
+                    if (y > 0 && bitmap.GetPixel(x, y - 1).ToArgb() != Color.White.ToArgb())
                     {
                         neighbors.Add(new Point(x, y - 1));
                     }
@@ -216,7 +323,7 @@ namespace Hots_Level_Logger
                         labelCount++;
                     }
                 }
-                if (labelCount < 15) // Components that are smaller than 15 pixels will be removed.
+                if (labelCount < minimumComponentPixelSize)
                 {
                     smallComponentLabels.Add(i);
                 }

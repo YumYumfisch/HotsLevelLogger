@@ -1,4 +1,6 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
 
 namespace Hots_Level_Logger
 {
@@ -8,16 +10,33 @@ namespace Hots_Level_Logger
     public static class ScreenCapture
     {
         /// <summary>
-        /// Captures a screenshot in a specific area of the screen.
+        /// Caches the screenshot of the primary screen.
         /// </summary>
-        /// <param name="area">Area on the screen to be captured.</param>
-        /// <returns>The Pixels currently displayed on screen in the specified area.</returns>
-        public static Bitmap CaptureScreen(Rectangle area)
-        {
-            Bitmap bitmap = new Bitmap(area.Width, area.Height);
+        private static Bitmap screenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
-            Graphics graphics = Graphics.FromImage(bitmap);
-            graphics.CopyFromScreen(area.Left, area.Top, 0, 0, area.Size);
+        /// <summary>
+        /// Captures a screenshot of the primary monitor and saves it as a private field.
+        /// </summary>
+        internal static void CaptureScreen()
+        {
+            Graphics graphics = Graphics.FromImage(screenshot);
+            graphics.CopyFromScreen(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y, 0, 0, Screen.PrimaryScreen.Bounds.Size);
+            graphics.Dispose();
+        }
+
+        /// <summary>
+        /// Selects a specific area of the previously captured screenshot.
+        /// </summary>
+        /// <param name="area">Area of the screenshot to be selected.</param>
+        /// <returns>The Pixels in the specified area of the captured screenshot.</returns>
+        internal static Bitmap GetScreenArea(Rectangle area)
+        {
+            if (screenshot == null)
+            {
+                return null;
+            }
+
+            Bitmap bitmap = screenshot.Clone(area, PixelFormat.Format32bppArgb);
 
             return bitmap;
         }

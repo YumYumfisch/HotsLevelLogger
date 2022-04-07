@@ -149,6 +149,7 @@ namespace Hots_Level_Logger
 
                 Console.WriteLine("Capturing...");
                 Console.WriteLine();
+                ScreenCapture.CaptureScreen();
 
                 if (!Directory.Exists(screenshotLevelFolder))
                 {
@@ -165,15 +166,32 @@ namespace Hots_Level_Logger
                 List<FileAttachment> files = new List<FileAttachment>();
                 for (int i = 0; i < levelAreas.Count; i++)
                 {
+                    string filename;
                     // Capture and analyze screen
-                    Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
-                    Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
-                    levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                    using (Bitmap LevelCaptureBmp = ScreenCapture.GetScreenArea(levelAreas[i]))
+                    {
+                        if (LevelCaptureBmp == null)
+                        {
+                            // Error handling
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Screen capture was not successful.");
+                            Console.WriteLine("Press [Enter] to end the program.");
+                            Console.ForegroundColor = ConsoleColor.Black;
+                            Console.ReadLine();
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            return;
+                        }
 
-                    // Save files
-                    string filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
-                    LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
-                    ScreenCapture.CaptureScreen(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
+                        using (Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp))
+                        {
+                            levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                        }
+
+                        // Save files
+                        filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
+                        LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
+                    }
+                    ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
 
                     // Log funny numbers
                     if (IsFunnyNumber(levels[i]))

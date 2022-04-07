@@ -1,11 +1,11 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
 #if !DEBUG
+using Discord;
+using System.Linq;
 using System.Threading;
 #else
 using System.Diagnostics;
@@ -24,7 +24,7 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Folder where the preprocessed number screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotLevelDebugginFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
+        private static readonly string screenshotLevelDebuggingFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
 #else
         /// <summary>
         /// Folder where the player screenshots will be saved to.
@@ -86,8 +86,11 @@ namespace Hots_Level_Logger
             if (!File.Exists(DiscordConfig))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error 404: DiscordConfig.txt not found.");
+                Console.WriteLine("Error 404: DiscordConfig.txt not found.");
+                Console.WriteLine("Press [Enter] to end the program.");
+                Console.ForegroundColor = ConsoleColor.Black;
                 Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.Green;
                 return;
             }
 
@@ -146,6 +149,7 @@ namespace Hots_Level_Logger
 
                 Console.WriteLine("Capturing...");
                 Console.WriteLine();
+                ScreenCapture.CaptureScreen();
 
                 if (!Directory.Exists(screenshotLevelFolder))
                 {
@@ -162,15 +166,32 @@ namespace Hots_Level_Logger
                 List<FileAttachment> files = new List<FileAttachment>();
                 for (int i = 0; i < levelAreas.Count; i++)
                 {
+                    string filename;
                     // Capture and analyze screen
-                    Bitmap LevelCaptureBmp = ScreenCapture.CaptureScreen(levelAreas[i]);
-                    Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
-                    levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                    using (Bitmap LevelCaptureBmp = ScreenCapture.GetScreenArea(levelAreas[i]))
+                    {
+                        if (LevelCaptureBmp == null)
+                        {
+                            // Error handling
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Screen capture was not successful.");
+                            Console.WriteLine("Press [Enter] to end the program.");
+                            Console.ForegroundColor = ConsoleColor.Black;
+                            Console.ReadLine();
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            return;
+                        }
 
-                    // Save files
-                    string filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
-                    LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
-                    ScreenCapture.CaptureScreen(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
+                        using (Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp))
+                        {
+                            levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                        }
+
+                        // Save files
+                        filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
+                        LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
+                    }
+                    ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
 
                     // Log funny numbers
                     if (IsFunnyNumber(levels[i]))
@@ -297,8 +318,8 @@ namespace Hots_Level_Logger
 
             return false;
         }
-
 #else
+
         /// <summary>
         /// Tests the accuracy of the OCR Library by comparing its results to the filenames of already processed images.
         /// </summary>
@@ -307,17 +328,39 @@ namespace Hots_Level_Logger
             Console.WriteLine("Testing OCR...");
 
             bool saveDebuggingScreenshots = false;
-            if (!Directory.Exists(screenshotLevelDebugginFolder))
+            if (!Directory.Exists(screenshotLevelDebuggingFolder))
             {
                 Console.WriteLine("Also saving debugging files...");
                 saveDebuggingScreenshots = true;
-                Directory.CreateDirectory(screenshotLevelDebugginFolder);
+                try
+                {
+                    Directory.CreateDirectory(screenshotLevelDebuggingFolder);
+                }
+                catch (IOException)
+                {
+                    ConsoleColor previousColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error while trying to create Directory '{screenshotLevelDebuggingFolder}'.");
+                    Console.WriteLine("Debugging screenshots will not be saved.");
+                    Console.ForegroundColor = previousColor;
+                }
             }
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
+            if (!folder.Exists)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error while trying to access Directory '{folder.FullName}'.");
+                Console.WriteLine("Press [Enter] to end the program.");
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.Green;
+                return;
+            }
+
             List<string> errorStrings = new List<string>();
             foreach (FileInfo file in folder.GetFiles("*.png"))
             {
@@ -331,7 +374,7 @@ namespace Hots_Level_Logger
                 LevelCaptureBmp.Dispose();
                 if (saveDebuggingScreenshots)
                 {
-                    LevelProcessedBmp.Save($"{screenshotLevelDebugginFolder}{Path.DirectorySeparatorChar}{file.Name}");
+                    LevelProcessedBmp.Save($"{screenshotLevelDebuggingFolder}{Path.DirectorySeparatorChar}{file.Name}");
                 }
                 int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
                 LevelProcessedBmp.Dispose();

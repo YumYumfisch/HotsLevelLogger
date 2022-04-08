@@ -190,10 +190,13 @@ namespace Hots_Level_Logger
             }
 
             string messageString = $"\r\nDiscord Message:\r\n{message.Message}";
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.DarkMagenta;
-            Console.WriteLine(messageString);
-            Console.ForegroundColor = previousColor;
+            lock (Program.consoleLockObject)
+            {
+                ConsoleColor previousColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.WriteLine(messageString);
+                Console.ForegroundColor = previousColor;
+            }
             return Task.CompletedTask;
         }
     }

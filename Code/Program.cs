@@ -21,9 +21,14 @@ namespace Hots_Level_Logger
         public static readonly object consoleLockObject = new object();
 
         /// <summary>
+        /// Path to the text file that stores the token of the discord bot and the discord channel.
+        /// </summary>
+        private static readonly string configFile = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}Config.txt";
+
+        /// <summary>
         /// Folder where the number screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotLevelFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}LevelLogs";
+        private static string screenshotLevelFolder;
 
 #if DEBUG
         /// <summary>
@@ -31,15 +36,21 @@ namespace Hots_Level_Logger
         /// </summary>
         private static readonly string screenshotLevelDebuggingFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
 #else
+
         /// <summary>
         /// Folder where the player screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotPlayerFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}PlayerLogs";
+        private static string screenshotPlayerFolder;
 
         /// <summary>
-        /// Path to the text file that stores the token of the discord bot and the discord channel.
+        /// 
         /// </summary>
-        private static readonly string DiscordConfig = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DiscordConfig.txt";
+        private static string discordBotToken;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static ulong discordChannelId;
 
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
@@ -76,10 +87,10 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Entry point for the application.
         /// </summary>
-        /// <param name="args">Discord Config. Index 0: Token, Index 1: ChannelID</param>
+        /// <param name="args">Optional: contains path to the config file at index 0.</param>
         public static void Main(string[] args)
         {
-            #region Console Setup
+            // Console Setup
             lock (consoleLockObject)
             {
                 Console.Title = "Hots Level Logger";
@@ -87,37 +98,19 @@ namespace Hots_Level_Logger
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.OutputEncoding = Encoding.UTF8;
             }
-            #endregion Console Setup
+
+            // Read Config
+            if (args == null || args.Length == 0 || args[0] == null || args[0] == "")
+            {
+                ReadConfigFile(configFile);
+            }
+            else
+            {
+                ReadConfigFile(args[0]);
+            }
 
 #if !DEBUG
-            #region Discord Setup
-            if (!File.Exists(DiscordConfig))
-            {
-                lock (consoleLockObject)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error 404: DiscordConfig.txt not found.");
-                    Console.WriteLine("Press [Enter] to end the program.");
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.ReadLine();
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                return;
-            }
-
-            if (args == null || args.Length == 0)
-            {
-                args = File.ReadAllLines(DiscordConfig);
-            }
-            _ = Discord.Init(args[0].Split(';')[0].Trim(), ulong.Parse(args[1].Split(';')[0].Trim()));
-
-            while (!Discord.IsReady())
-            {
-                Thread.Sleep(10);
-            }
-
-            Thread.Sleep(10);
-            #endregion Discord Setup
+            InitDiscord();
 #endif
             lock (consoleLockObject)
             {
@@ -241,7 +234,51 @@ namespace Hots_Level_Logger
 #endif
         }
 
+        /// <summary>
+        /// Reads and saves all parameters from the config file.
+        /// </summary>
+        /// <param name="filepath">Path to the Config File</param>
+        private static void ReadConfigFile(string filepath)
+        {
+            if (!File.Exists(filepath))
+            {
+                lock (consoleLockObject)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error 404: Config.txt not found.");
+                    Console.WriteLine("Press [Enter] to end the program.");
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.ReadLine();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(filepath);
 #if !DEBUG
+            discordBotToken = lines[0].Split(';')[0].Trim();
+            discordChannelId = ulong.Parse(lines[1].Split(';')[0].Trim());
+            screenshotPlayerFolder = lines[3].Trim();
+#endif
+            screenshotLevelFolder = lines[2].Trim();
+        }
+
+#if !DEBUG
+        /// <summary>
+        /// Initializes the Discord Bot.
+        /// </summary>
+        private static void InitDiscord()
+        {
+            _ = Discord.Init(discordBotToken, discordChannelId);
+
+            while (!Discord.IsReady())
+            {
+                Thread.Sleep(10);
+            }
+
+            Thread.Sleep(10);
+        }
+
         /// <summary>
         /// Logs the levels in discord and sends the provided files.
         /// </summary>

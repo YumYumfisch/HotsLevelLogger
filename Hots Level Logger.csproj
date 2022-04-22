@@ -19,4 +19,12 @@
 		<PackageReference Include="Tesseract.Drawing" Version="4.1.1" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <NativeLibs Remove="Code\OcrApi\Rootobject.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <NativeLibs Remove="Code\OcrApi\Parsedresult.cs" />
+	</ItemGroup>
+
 </Project>

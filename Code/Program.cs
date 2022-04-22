@@ -453,6 +453,8 @@ namespace Hots_Level_Logger
                         LevelProcessedBmp.Save($"{screenshotLevelDebuggingFolder}{Path.DirectorySeparatorChar}{file.Name}");
                     }
                     int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                    OpticalCharacterRecognition.GetNumber(file.FullName, "K85628860988957");
+                    break;
                     LevelProcessedBmp.Dispose();
                     string statistics;
 

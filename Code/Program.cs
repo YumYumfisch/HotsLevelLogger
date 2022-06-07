@@ -318,11 +318,11 @@ namespace Hots_Level_Logger
             string hg = levels[^1].ToString().PadLeft(4);
             string hr = levelsRight[^1].ToString().PadLeft(4);
             string al = avgLeft.ToString().PadLeft(4);
-            string ag = avgGame.ToString().PadLeft(4); ;
-            string ar = avgRight.ToString().PadLeft(4); ;
+            string ag = avgGame.ToString().PadLeft(4);
+            string ar = avgRight.ToString().PadLeft(4);
             string ll = levelsLeft[0].ToString().PadLeft(4);
-            string lg = levels[0].ToString().PadLeft(4); ;
-            string lr = levelsRight[0].ToString().PadLeft(4); ;
+            string lg = levels[0].ToString().PadLeft(4);
+            string lr = levelsRight[0].ToString().PadLeft(4);
 
             string message = $@"```h
 [{string.Join(", ", levels)}]
@@ -402,7 +402,7 @@ namespace Hots_Level_Logger
                 saveDebuggingScreenshots = true;
                 try
                 {
-                    Directory.CreateDirectory(screenshotLevelDebuggingFolder);
+                    _ = Directory.CreateDirectory(screenshotLevelDebuggingFolder);
                 }
                 catch (IOException)
                 {
@@ -429,7 +429,7 @@ namespace Hots_Level_Logger
                     Console.WriteLine($"Error while trying to access Directory '{folder.FullName}'.");
                     Console.WriteLine("Press [Enter] to end the program.");
                     Console.ForegroundColor = ConsoleColor.Black;
-                    Console.ReadLine();
+                    _ = Console.ReadLine();
                     Console.ForegroundColor = ConsoleColor.Green;
                 }
                 return;
@@ -491,7 +491,7 @@ namespace Hots_Level_Logger
                 Console.WriteLine();
                 Console.WriteLine("Press [Enter] to end the program.");
                 Console.ForegroundColor = ConsoleColor.Black;
-                Console.ReadLine();
+                _ = Console.ReadLine();
                 Console.ForegroundColor = ConsoleColor.Green;
             }
         }

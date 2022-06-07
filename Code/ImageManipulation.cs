@@ -361,7 +361,7 @@ namespace Hots_Level_Logger
                     }
 
                     List<int> labels;
-                    equivalenceMapping.TryGetValue(pixelLabels[x, y], out labels);
+                    _ = equivalenceMapping.TryGetValue(pixelLabels[x, y], out labels);
                     pixelLabels[x, y] = labels.Min();
                 }
             }

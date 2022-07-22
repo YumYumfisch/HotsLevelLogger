@@ -33,7 +33,6 @@ namespace Hots_Level_Logger
                 }
             }
 
-
             if (text == null || text == "")
             {
                 return 0;

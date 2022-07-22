@@ -149,6 +149,7 @@ namespace Hots_Level_Logger
             };
             #endregion Screenshot Areas
 
+            // Main Loop
             while (true)
             {
                 lock (consoleLockObject)

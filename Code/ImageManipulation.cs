@@ -193,7 +193,7 @@ namespace Hots_Level_Logger
 
                     // Add digits
                     int digitIndex = (x - 3) / 11; // Ignoring border padding and accounting for digit width (7p plus one pixel of extra space each for error corection and one for padding on each side)
-                    int pixelShift = digitIndex * 2 + 1; // Accounting for extra padding between digits
+                    int pixelShift = (digitIndex * 2) + 1; // Accounting for extra padding between digits
 
                     output.SetPixel(x, y, source.GetPixel(x - pixelShift, y));
                 }

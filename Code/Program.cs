@@ -175,14 +175,13 @@ namespace Hots_Level_Logger
                 }
 
                 int[] levels = new int[levelAreas.Count];
+                string[] filenames = new string[levelAreas.Count];
 
-                List<FileAttachment> files = new List<FileAttachment>();
                 lock (consoleLockObject)
                 {
                     Console.Write("Levels: {");
                     for (int i = 0; i < levelAreas.Count; i++)
                     {
-                        string filename;
                         // Capture and analyze screen
                         using (Bitmap LevelCaptureBmp = ScreenCapture.GetScreenArea(levelAreas[i]))
                         {
@@ -204,33 +203,20 @@ namespace Hots_Level_Logger
                             }
 
                             // Save files
-                            filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
-                            LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
+                            filenames[i] = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
+                            LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filenames[i]}");
                         }
-                        ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
-
-                        // Log funny numbers
-                        if (IsFunnyNumber(levels[i]))
-                        {
-                            files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}", description: levels[i].ToString()));
-                        }
+                        ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filenames[i]}");
 
                         // Log Levels during analysis
-                        if (i == levelAreas.Count - 1)
-                        {
-                            Console.WriteLine(levels[i] + "}");
-                        }
-                        else
-                        {
-                            Console.Write($"{levels[i]}, ");
-                        }
+                        Console.WriteLine(levels[i] + (i == levelAreas.Count - 1 ? "}" : ", "));
                     }
 
                     Console.WriteLine();
                     Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
                     Console.WriteLine();
                 }
-                LogMessage(levels, files);
+                LogMessage(levels, filenames);
             }
 #endif
         }
@@ -284,8 +270,8 @@ namespace Hots_Level_Logger
         /// Logs the levels in discord and sends the provided files.
         /// </summary>
         /// <param name="levels">Unsorted array of levels.</param>
-        /// <param name="files">Files to be sent with the message.</param>
-        private static void LogMessage(int[] levels, IEnumerable<FileAttachment> files)
+        /// <param name="filenames">Unsorted array of filenames</param>
+        private static void LogMessage(int[] levels, string[] filenames)
         {
             int[] levelsLeft = { levels[0], levels[1], levels[2], levels[3], levels[4] };
             int[] levelsRight = { levels[5], levels[6], levels[7], levels[8], levels[9] };
@@ -338,6 +324,36 @@ namespace Hots_Level_Logger
 └───────┴────┴────┴─────┘
 ```";
 
+            // Add Screenshots to message
+            List<FileAttachment> files = new List<FileAttachment>();
+
+            byte aiTeam = 0; // Determines which team is AI to ignore sending screenshots
+            if (avgLeft == 0)
+            {
+                aiTeam += 1; // 2^0
+            }
+            if (avgRight == 0)
+            {
+                aiTeam += 2; // 2^1
+            }
+
+            for (int i = 0; i < levels.Length; i++)
+            {
+                // Ignore AI screenshots
+                if ((i < levels.Length / 2 && aiTeam % 2 == 1) || // If left team is AI and first half of screenshots are being processed
+                    (i >= levels.Length / 2 && aiTeam > 1)) //  Or if right team is AI and second half of screenshots are being processed
+                {
+                    continue;
+                }
+
+                // Log funny numbers
+                if (IsFunnyNumber(levels[i]))
+                {
+                    files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filenames[i]}", description: levels[i].ToString()));
+                }
+            }
+
+            // Send Message
             Discord.LogFiles(files, message);
             lock (consoleLockObject)
             {

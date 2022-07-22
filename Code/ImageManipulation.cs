@@ -25,6 +25,61 @@ namespace Hots_Level_Logger
 #endif
         }
 
+#if DEBUG
+        /// <summary>
+        /// Add additional padding around a bitmap.
+        /// </summary>
+        /// <param name="source">Bitmap to be padded</param>
+        /// <returns>Padded bitmap</returns>
+        private static Bitmap ExtraPadding(Bitmap source)
+        {
+            Bitmap output = new Bitmap(source.Width + 80, source.Height + 60);
+            for (int x = 0; x < output.Width; x++)
+            {
+                for (int y = 0; y < output.Height; y++)
+                {
+                    output.SetPixel(x, y, Color.White);
+                }
+            }
+
+            Graphics graphics = Graphics.FromImage(output);
+            graphics.DrawImage(source, 40, 30, source.Width, source.Height);
+
+            return output;
+        }
+
+        /// <summary>
+        /// Changes every black pixel to white and every white pixel to black.
+        /// Ignores pixels with different colors
+        /// </summary>
+        /// <param name="source">Bitmap to be inverted.</param>
+        /// <returns>Inverted bitmap</returns>
+        private static Bitmap Invert(Bitmap source)
+        {
+            Bitmap output = new Bitmap(source.Width, source.Height);
+            for (int x = 0; x < output.Width; x++)
+            {
+                for (int y = 0; y < output.Height; y++)
+                {
+                    if (source.GetPixel(x, y).ToArgb() == Color.White.ToArgb())
+                    {
+                        output.SetPixel(x, y, Color.Black);
+                    }
+                    else if (source.GetPixel(x, y).ToArgb() == Color.Black.ToArgb())
+                    {
+                        output.SetPixel(x, y, Color.White);
+                    }
+                    else
+                    {
+                        output.SetPixel(x, y, source.GetPixel(x, y));
+                    }
+                }
+            }
+
+            return output;
+        }
+#endif
+
         /// <summary>
         /// Compares Hue value of pixels to filter parts from profile pictures that have a different color than the digits.
         /// </summary>
@@ -138,7 +193,7 @@ namespace Hots_Level_Logger
 
                     // Add digits
                     int digitIndex = (x - 3) / 11; // Ignoring border padding and accounting for digit width (7p plus one pixel of extra space each for error corection and one for padding on each side)
-                    int pixelShift = digitIndex * 2 + 1; // Accounting for extra padding between digits
+                    int pixelShift = (digitIndex * 2) + 1; // Accounting for extra padding between digits
 
                     output.SetPixel(x, y, source.GetPixel(x - pixelShift, y));
                 }
@@ -306,7 +361,7 @@ namespace Hots_Level_Logger
                     }
 
                     List<int> labels;
-                    equivalenceMapping.TryGetValue(pixelLabels[x, y], out labels);
+                    _ = equivalenceMapping.TryGetValue(pixelLabels[x, y], out labels);
                     pixelLabels[x, y] = labels.Min();
                 }
             }

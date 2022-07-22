@@ -72,7 +72,7 @@ namespace Hots_Level_Logger
         private static void OnReady()
         {
             channel = client.GetChannel(channelId) as SocketTextChannel;
-            client.SetGameAsync($"Loggers of the Storm");
+            _ = client.SetGameAsync($"Loggers of the Storm");
             ready = true;
         }
 
@@ -90,7 +90,7 @@ namespace Hots_Level_Logger
         /// <param name="message">Message to be sent.</param>
         internal static void Log(string message)
         {
-            channel.SendMessageAsync(message);
+            _ = channel.SendMessageAsync(message);
             Thread.Sleep(10);
         }
 
@@ -101,7 +101,7 @@ namespace Hots_Level_Logger
         /// <param name="message">Message to be sent.</param>
         internal static void LogFile(string filepath, string message = "")
         {
-            channel.SendFileAsync(filepath, message);
+            _ = channel.SendFileAsync(filepath, message);
             Thread.Sleep(10);
         }
 
@@ -112,7 +112,7 @@ namespace Hots_Level_Logger
         /// <param name="message">Message to be sent.</param>
         internal static void LogFiles(IEnumerable<FileAttachment> attachments, string message = "")
         {
-            channel.SendFilesAsync(attachments, message);
+            _ = channel.SendFilesAsync(attachments, message);
         }
 
 #if DEBUG
@@ -163,7 +163,7 @@ namespace Hots_Level_Logger
                 Timestamp = DateTime.Now,
                 Color = Color.Magenta
             }.Build();
-            channel.SendMessageAsync("Embed Message", false, embed);
+            _ = channel.SendMessageAsync("Embed Message", false, embed);
         }
 #endif
 
@@ -190,10 +190,13 @@ namespace Hots_Level_Logger
             }
 
             string messageString = $"\r\nDiscord Message:\r\n{message.Message}";
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.DarkMagenta;
-            Console.WriteLine(messageString);
-            Console.ForegroundColor = previousColor;
+            lock (Program.consoleLockObject)
+            {
+                ConsoleColor previousColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.WriteLine(messageString);
+                Console.ForegroundColor = previousColor;
+            }
             return Task.CompletedTask;
         }
     }

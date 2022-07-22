@@ -12,7 +12,7 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Caches the screenshot of the primary screen.
         /// </summary>
-        private static Bitmap screenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+        private static readonly Bitmap screenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
 
         /// <summary>
         /// Captures a screenshot of the primary monitor and saves it as a private field.

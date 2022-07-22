@@ -16,9 +16,19 @@ namespace Hots_Level_Logger
     public static class Program
     {
         /// <summary>
+        /// Used to lock onto before manipulating Console colors or writing to the console.
+        /// </summary>
+        public static readonly object consoleLockObject = new object();
+
+        /// <summary>
+        /// Path to the text file that stores the token of the discord bot and the discord channel.
+        /// </summary>
+        private static readonly string configFile = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}Config.txt";
+
+        /// <summary>
         /// Folder where the number screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotLevelFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}LevelLogs";
+        private static string screenshotLevelFolder;
 
 #if DEBUG
         /// <summary>
@@ -26,15 +36,21 @@ namespace Hots_Level_Logger
         /// </summary>
         private static readonly string screenshotLevelDebuggingFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DebugLevelLogs";
 #else
+
         /// <summary>
         /// Folder where the player screenshots will be saved to.
         /// </summary>
-        private static readonly string screenshotPlayerFolder = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}PlayerLogs";
+        private static string screenshotPlayerFolder;
 
         /// <summary>
-        /// Path to the text file that stores the token of the discord bot and the discord channel.
+        /// 
         /// </summary>
-        private static readonly string DiscordConfig = $"E:{Path.DirectorySeparatorChar}HotsLevelLogger{Path.DirectorySeparatorChar}DiscordConfig.txt";
+        private static string discordBotToken;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static ulong discordChannelId;
 
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
@@ -71,45 +87,36 @@ namespace Hots_Level_Logger
         /// <summary>
         /// Entry point for the application.
         /// </summary>
-        /// <param name="args">Discord Config. Index 0: Token, Index 1: ChannelID</param>
+        /// <param name="args">Optional: contains path to the config file at index 0.</param>
         public static void Main(string[] args)
         {
-            #region Console Setup
-            Console.Title = "Hots Level Logger";
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.OutputEncoding = Encoding.UTF8;
-            #endregion Console Setup
+            // Console Setup
+            lock (consoleLockObject)
+            {
+                Console.Title = "Hots Level Logger";
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.OutputEncoding = Encoding.UTF8;
+            }
+
+            // Read Config
+            if (args == null || args.Length == 0 || args[0] == null || args[0] == "")
+            {
+                ReadConfigFile(configFile);
+            }
+            else
+            {
+                ReadConfigFile(args[0]);
+            }
 
 #if !DEBUG
-            #region Discord Setup
-            if (!File.Exists(DiscordConfig))
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Error 404: DiscordConfig.txt not found.");
-                Console.WriteLine("Press [Enter] to end the program.");
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.ReadLine();
-                Console.ForegroundColor = ConsoleColor.Green;
-                return;
-            }
-
-            if (args == null || args.Length == 0)
-            {
-                args = File.ReadAllLines(DiscordConfig);
-            }
-            _ = Discord.Init(args[0].Split(';')[0].Trim(), ulong.Parse(args[1].Split(';')[0].Trim()));
-
-            while (!Discord.IsReady())
-            {
-                Thread.Sleep(10);
-            }
-
-            Thread.Sleep(10);
-            Console.WriteLine();
-            #endregion Discord Setup
+            InitDiscord();
 #endif
-            Console.WriteLine("Setup Complete.");
+            lock (consoleLockObject)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Setup Complete.");
+            }
 
 #if DEBUG
             DebugOCR();
@@ -142,13 +149,20 @@ namespace Hots_Level_Logger
             };
             #endregion Screenshot Areas
 
+            // Main Loop
             while (true)
             {
-                Console.WriteLine("Press [Enter] to analyze the screen.");
+                lock (consoleLockObject)
+                {
+                    Console.WriteLine("Press [Enter] to analyze the screen.");
+                }
                 Console.ReadLine();
 
-                Console.WriteLine("Capturing...");
-                Console.WriteLine();
+                lock (consoleLockObject)
+                {
+                    Console.WriteLine("Capturing...");
+                    Console.WriteLine();
+                }
                 ScreenCapture.CaptureScreen();
 
                 if (!Directory.Exists(screenshotLevelFolder))
@@ -161,71 +175,103 @@ namespace Hots_Level_Logger
                 }
 
                 int[] levels = new int[levelAreas.Count];
+                string[] filenames = new string[levelAreas.Count];
 
-                Console.Write("Levels: {");
-                List<FileAttachment> files = new List<FileAttachment>();
-                for (int i = 0; i < levelAreas.Count; i++)
+                lock (consoleLockObject)
                 {
-                    string filename;
-                    // Capture and analyze screen
-                    using (Bitmap LevelCaptureBmp = ScreenCapture.GetScreenArea(levelAreas[i]))
+                    Console.Write("Levels: {");
+                    for (int i = 0; i < levelAreas.Count; i++)
                     {
-                        if (LevelCaptureBmp == null)
+                        // Capture and analyze screen
+                        using (Bitmap LevelCaptureBmp = ScreenCapture.GetScreenArea(levelAreas[i]))
                         {
-                            // Error handling
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("Screen capture was not successful.");
-                            Console.WriteLine("Press [Enter] to end the program.");
-                            Console.ForegroundColor = ConsoleColor.Black;
-                            Console.ReadLine();
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            return;
+                            if (LevelCaptureBmp == null)
+                            {
+                                // Error handling
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Screen capture was not successful.");
+                                Console.WriteLine("Press [Enter] to end the program.");
+                                Console.ForegroundColor = ConsoleColor.Black;
+                                Console.ReadLine();
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                return;
+                            }
+
+                            using (Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp))
+                            {
+                                levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                            }
+
+                            // Save files
+                            filenames[i] = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
+                            LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filenames[i]}");
                         }
+                        ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filenames[i]}");
 
-                        using (Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp))
-                        {
-                            levels[i] = OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
-                        }
-
-                        // Save files
-                        filename = $"{levels[i].ToString().PadLeft(4, '0')}_{DateTime.UtcNow.ToString("yyyy.MM.dd-HH.mm.ss.fff")}.png";
-                        LevelCaptureBmp.Save($"{screenshotLevelFolder}{Path.DirectorySeparatorChar}{filename}");
-                    }
-                    ScreenCapture.GetScreenArea(PlayerAreas[i]).Save($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}");
-
-                    // Log funny numbers
-                    if (IsFunnyNumber(levels[i]))
-                    {
-                        files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filename}", description: levels[i].ToString()));
+                        // Log Levels during analysis
+                        Console.WriteLine(levels[i] + (i == levelAreas.Count - 1 ? "}" : ", "));
                     }
 
-                    // Log Levels during analysis
-                    if (i == levelAreas.Count - 1)
-                    {
-                        Console.WriteLine(levels[i] + "}");
-                    }
-                    else
-                    {
-                        Console.Write($"{levels[i]}, ");
-                    }
+                    Console.WriteLine();
+                    Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
+                    Console.WriteLine();
                 }
-
-                Console.WriteLine();
-                Console.WriteLine($"Saved captures at '{screenshotPlayerFolder}'.");
-                Console.WriteLine();
-
-                LogMessage(levels, files);
+                LogMessage(levels, filenames);
             }
 #endif
         }
 
+        /// <summary>
+        /// Reads and saves all parameters from the config file.
+        /// </summary>
+        /// <param name="filepath">Path to the Config File</param>
+        private static void ReadConfigFile(string filepath)
+        {
+            if (!File.Exists(filepath))
+            {
+                lock (consoleLockObject)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error 404: Config.txt not found.");
+                    Console.WriteLine("Press [Enter] to end the program.");
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.ReadLine();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(filepath);
 #if !DEBUG
+            discordBotToken = lines[0].Split(';')[0].Trim();
+            discordChannelId = ulong.Parse(lines[1].Split(';')[0].Trim());
+            screenshotPlayerFolder = lines[3].Trim();
+#endif
+            screenshotLevelFolder = lines[2].Trim();
+        }
+
+#if !DEBUG
+        /// <summary>
+        /// Initializes the Discord Bot.
+        /// </summary>
+        private static void InitDiscord()
+        {
+            _ = Discord.Init(discordBotToken, discordChannelId);
+
+            while (!Discord.IsReady())
+            {
+                Thread.Sleep(10);
+            }
+
+            Thread.Sleep(10);
+        }
+
         /// <summary>
         /// Logs the levels in discord and sends the provided files.
         /// </summary>
         /// <param name="levels">Unsorted array of levels.</param>
-        /// <param name="files">Files to be sent with the message.</param>
-        private static void LogMessage(int[] levels, IEnumerable<FileAttachment> files)
+        /// <param name="filenames">Unsorted array of filenames</param>
+        private static void LogMessage(int[] levels, string[] filenames)
         {
             int[] levelsLeft = { levels[0], levels[1], levels[2], levels[3], levels[4] };
             int[] levelsRight = { levels[5], levels[6], levels[7], levels[8], levels[9] };
@@ -259,11 +305,11 @@ namespace Hots_Level_Logger
             string hg = levels[^1].ToString().PadLeft(4);
             string hr = levelsRight[^1].ToString().PadLeft(4);
             string al = avgLeft.ToString().PadLeft(4);
-            string ag = avgGame.ToString().PadLeft(4); ;
-            string ar = avgRight.ToString().PadLeft(4); ;
+            string ag = avgGame.ToString().PadLeft(4);
+            string ar = avgRight.ToString().PadLeft(4);
             string ll = levelsLeft[0].ToString().PadLeft(4);
-            string lg = levels[0].ToString().PadLeft(4); ;
-            string lr = levelsRight[0].ToString().PadLeft(4); ;
+            string lg = levels[0].ToString().PadLeft(4);
+            string lr = levelsRight[0].ToString().PadLeft(4);
 
             string message = $@"```h
 [{string.Join(", ", levels)}]
@@ -278,8 +324,41 @@ namespace Hots_Level_Logger
 └───────┴────┴────┴─────┘
 ```";
 
+            // Add Screenshots to message
+            List<FileAttachment> files = new List<FileAttachment>();
+
+            byte aiTeam = 0; // Determines which team is AI to ignore sending screenshots
+            if (avgLeft == 0)
+            {
+                aiTeam += 1; // 2^0
+            }
+            if (avgRight == 0)
+            {
+                aiTeam += 2; // 2^1
+            }
+
+            for (int i = 0; i < levels.Length; i++)
+            {
+                // Ignore AI screenshots
+                if ((i < levels.Length / 2 && aiTeam % 2 == 1) || // If left team is AI and first half of screenshots are being processed
+                    (i >= levels.Length / 2 && aiTeam > 1)) //  Or if right team is AI and second half of screenshots are being processed
+                {
+                    continue;
+                }
+
+                // Log funny numbers
+                if (IsFunnyNumber(levels[i]))
+                {
+                    files.Add(new FileAttachment($"{screenshotPlayerFolder}{Path.DirectorySeparatorChar}{filenames[i]}", description: levels[i].ToString()));
+                }
+            }
+
+            // Send Message
             Discord.LogFiles(files, message);
-            Console.Write(message.Replace("```h", "").Replace("`", ""));
+            lock (consoleLockObject)
+            {
+                Console.Write(message.Replace("```h", "").Replace("`", ""));
+            }
             return;
         }
 
@@ -325,24 +404,33 @@ namespace Hots_Level_Logger
         /// </summary>
         private static void DebugOCR(bool overrideOCR = false)
         {
-            Console.WriteLine("Testing OCR...");
+            lock (consoleLockObject)
+            {
+                Console.WriteLine("Testing OCR...");
+            }
 
             bool saveDebuggingScreenshots = false;
             if (!Directory.Exists(screenshotLevelDebuggingFolder))
             {
-                Console.WriteLine("Also saving debugging files...");
+                lock (consoleLockObject)
+                {
+                    Console.WriteLine("Also saving debugging files...");
+                }
                 saveDebuggingScreenshots = true;
                 try
                 {
-                    Directory.CreateDirectory(screenshotLevelDebuggingFolder);
+                    _ = Directory.CreateDirectory(screenshotLevelDebuggingFolder);
                 }
                 catch (IOException)
                 {
-                    ConsoleColor previousColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Error while trying to create Directory '{screenshotLevelDebuggingFolder}'.");
-                    Console.WriteLine("Debugging screenshots will not be saved.");
-                    Console.ForegroundColor = previousColor;
+                    lock (consoleLockObject)
+                    {
+                        ConsoleColor previousColor = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"Error while trying to create Directory '{screenshotLevelDebuggingFolder}'.");
+                        Console.WriteLine("Debugging screenshots will not be saved.");
+                        Console.ForegroundColor = previousColor;
+                    }
                 }
             }
 
@@ -352,68 +440,77 @@ namespace Hots_Level_Logger
             DirectoryInfo folder = new DirectoryInfo(screenshotLevelFolder);
             if (!folder.Exists)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error while trying to access Directory '{folder.FullName}'.");
-                Console.WriteLine("Press [Enter] to end the program.");
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.ReadLine();
-                Console.ForegroundColor = ConsoleColor.Green;
+                lock (consoleLockObject)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error while trying to access Directory '{folder.FullName}'.");
+                    Console.WriteLine("Press [Enter] to end the program.");
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    _ = Console.ReadLine();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
                 return;
             }
 
             List<string> errorStrings = new List<string>();
             foreach (FileInfo file in folder.GetFiles("*.png"))
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write(file.Name);
-
-                int fileLevel = int.Parse(file.Name.Split('_')[0]);
-
-                Bitmap LevelCaptureBmp = System.Drawing.Image.FromFile(file.FullName) as Bitmap;
-                Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
-                LevelCaptureBmp.Dispose();
-                if (saveDebuggingScreenshots)
+                lock (consoleLockObject)
                 {
-                    LevelProcessedBmp.Save($"{screenshotLevelDebuggingFolder}{Path.DirectorySeparatorChar}{file.Name}");
-                }
-                int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
-                LevelProcessedBmp.Dispose();
-                string statistics;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(file.Name);
 
-                if (fileLevel == ocrLevel)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    statistics = $" File: {fileLevel}, OCR: {ocrLevel}";
+                    int fileLevel = int.Parse(file.Name.Split('_')[0]);
+
+                    Bitmap LevelCaptureBmp = Image.FromFile(file.FullName) as Bitmap;
+                    Bitmap LevelProcessedBmp = ImageManipulation.PrepareImage(LevelCaptureBmp);
+                    LevelCaptureBmp.Dispose();
+                    if (saveDebuggingScreenshots)
+                    {
+                        LevelProcessedBmp.Save($"{screenshotLevelDebuggingFolder}{Path.DirectorySeparatorChar}{file.Name}");
+                    }
+                    int ocrLevel = overrideOCR ? 0 : OpticalCharacterRecognition.GetNumber(LevelProcessedBmp, out _);
+                    LevelProcessedBmp.Dispose();
+                    string statistics;
+
+                    if (fileLevel == ocrLevel)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        statistics = $" File: {fileLevel}, OCR: {ocrLevel}";
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        statistics = $" File: {fileLevel}, OCR: {ocrLevel}, Difference: {Math.Abs(fileLevel - ocrLevel)}";
+                        errorStrings.Add(file.Name + statistics);
+                    }
+                    Console.WriteLine(statistics);
                 }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    statistics = $" File: {fileLevel}, OCR: {ocrLevel}, Difference: {Math.Abs(fileLevel - ocrLevel)}";
-                    errorStrings.Add(file.Name + statistics);
-                }
-                Console.WriteLine(statistics);
             }
 
             stopwatch.Stop();
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine();
-            Console.WriteLine("Debugging complete.");
-            Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.ToString()}");
-            Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({(100.0 * errorStrings.Count / folder.GetFiles("*.png").Length).ToString("00.00")}%)");
-            Console.WriteLine();
-            Console.WriteLine("Files containing errors:");
-            Console.ForegroundColor = ConsoleColor.Red;
-            foreach (string error in errorStrings)
+            lock (consoleLockObject)
             {
-                Console.WriteLine(error);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine();
+                Console.WriteLine("Debugging complete.");
+                Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.ToString()}");
+                Console.WriteLine($"Errors: {errorStrings.Count}/{folder.GetFiles("*.png").Length} ({(100.0 * errorStrings.Count / folder.GetFiles("*.png").Length).ToString("00.00")}%)");
+                Console.WriteLine();
+                Console.WriteLine("Files containing errors:");
+                Console.ForegroundColor = ConsoleColor.Red;
+                foreach (string error in errorStrings)
+                {
+                    Console.WriteLine(error);
+                }
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine();
+                Console.WriteLine("Press [Enter] to end the program.");
+                Console.ForegroundColor = ConsoleColor.Black;
+                _ = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.Green;
             }
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine();
-            Console.WriteLine("Press [Enter] to end the program.");
-            Console.ForegroundColor = ConsoleColor.Black;
-            Console.ReadLine();
-            Console.ForegroundColor = ConsoleColor.Green;
         }
 #endif
     }

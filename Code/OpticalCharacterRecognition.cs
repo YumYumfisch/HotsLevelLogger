@@ -19,10 +19,10 @@ namespace Hots_Level_Logger
             using (TesseractEngine engine = new TesseractEngine(@"./tessdata", "eng", EngineMode.Default))
             {
                 // Tesseract configuration
-                engine.SetVariable("tessedit_char_whitelist", "0123456789"); // Whitelist of chars to recognize
-                engine.SetVariable("tessedit_unrej_any_wd", "1"); // Dont bother with word plausibility
-                engine.SetVariable("textord_noise_rejrows", "0"); // Reject noise-like rows
-                engine.SetVariable("textord_noise_rejwords", "0"); // Reject noise-like words
+                _ = engine.SetVariable("tessedit_char_whitelist", "0123456789"); // Whitelist of chars to recognize
+                _ = engine.SetVariable("tessedit_unrej_any_wd", "1"); // Dont bother with word plausibility
+                _ = engine.SetVariable("textord_noise_rejrows", "0"); // Reject noise-like rows
+                _ = engine.SetVariable("textord_noise_rejwords", "0"); // Reject noise-like words
                 //engine.SetVariable("user_words_file", "filename.txt"); // A filename of user-provided words
 
                 // Character recognition
@@ -32,7 +32,6 @@ namespace Hots_Level_Logger
                     confidence = page.GetMeanConfidence();
                 }
             }
-
 
             if (text == null || text == "")
             {

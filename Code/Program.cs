@@ -361,7 +361,7 @@ namespace Hots_Level_Logger
 
             // Funny number
             string numberString = number.ToString();
-            int[] funnyNumbers = { 187, 246, 314, 404, 418, 420 };
+            int[] funnyNumbers = { 187, 246, 314, 365, 404, 418, 420 };
             if (funnyNumbers.Contains(number) || number % 100 == 0 || numberString.Contains("69"))
             {
                 return true;

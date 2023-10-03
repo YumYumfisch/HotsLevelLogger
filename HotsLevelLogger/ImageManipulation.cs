@@ -33,7 +33,7 @@ namespace Hots_Level_Logger
         /// <returns>Padded bitmap</returns>
         private static Bitmap ExtraPadding(Bitmap source)
         {
-            Bitmap output = new Bitmap(source.Width + 80, source.Height + 60);
+            Bitmap output = new Bitmap(source.Width + 40, source.Height + 30);
             for (int x = 0; x < output.Width; x++)
             {
                 for (int y = 0; y < output.Height; y++)
@@ -43,7 +43,7 @@ namespace Hots_Level_Logger
             }
 
             Graphics graphics = Graphics.FromImage(output);
-            graphics.DrawImage(source, 40, 30, source.Width, source.Height);
+            graphics.DrawImage(source, 20, 15, source.Width, source.Height);
 
             return output;
         }
@@ -177,19 +177,26 @@ namespace Hots_Level_Logger
             {
                 for (int y = 0; y < output.Height; y++)
                 {
-                    // Remove border (2 lines each at the top and bottom and 3 rows each at the left and right)
-                    if (y < 2 || y >= output.Height - 2 || x < 3 || x >= output.Width - 3)
+                    // Remove border (2 lines each at the top and bottom and 1 row each at the left and right)
+                    if (y < 2 || y >= output.Height - 2 || x < 1 || x >= output.Width - 1)
                     {
                         output.SetPixel(x, y, Color.White);
                         continue;
                     }
 
-                    // Add extra padding between digits
-                    if ((x - 3) % 11 >= 9)
-                    {
-                        output.SetPixel(x, y, Color.White);
-                        continue;
-                    }
+                    //// Remove border (2 lines each at the top and bottom and 3 rows each at the left and right)
+                    //if (y < 2 || y >= output.Height - 2 || x < 3 || x >= output.Width - 3)
+                    //{
+                    //    output.SetPixel(x, y, Color.White);
+                    //    continue;
+                    //}
+                    //
+                    //// Add extra padding between digits
+                    //if ((x - 3) % 11 >= 9)
+                    //{
+                    //    output.SetPixel(x, y, Color.White);
+                    //    continue;
+                    //}
 
                     // Add digits
                     int digitIndex = (x - 3) / 11; // Ignoring border padding and accounting for digit width (7p plus one pixel of extra space each for error corection and one for padding on each side)

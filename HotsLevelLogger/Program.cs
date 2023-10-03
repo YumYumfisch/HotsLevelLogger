@@ -55,32 +55,32 @@ namespace Hots_Level_Logger
         #region Border Pixel Position Constants
         /* Border Pixel Position Constants:
          * Pixel positions that can be combined to get the top-left corner and area size of the area to be screenshotted for each player.
-         * Pixel positions are only valid on a 2560x1080p monitor.
+         * Pixel positions are only valid on a 2560x1440p monitor.
          */
 
         // Level Area Size
-        private static readonly Size LevelAreaSize = new Size(40, 15);
+        private static readonly Size LevelAreaSize = new Size(50, 18);
         // Level X positions
-        private const int BorderPosLevelXLeft = 31;
-        private const int BorderPosLevelXRight = 2462;
+        private const int BorderPosLevelXLeft = 44;
+        private const int BorderPosLevelXRight = 2431;
         // Level Y positions
-        private const int BorderPosLevelY1 = 261;
-        private const int BorderPosLevelY2 = 393;
-        private const int BorderPosLevelY3 = 525;
-        private const int BorderPosLevelY4 = 657;
-        private const int BorderPosLevelY5 = 790;
+        private const int BorderPosLevelY1 = 349;
+        private const int BorderPosLevelY2 = 526;
+        private const int BorderPosLevelY3 = 702;
+        private const int BorderPosLevelY4 = 879;
+        private const int BorderPosLevelY5 = 1055;
 
         // Player Area Size
-        private static readonly Size PlayerAreaSize = new Size(308, 113);
+        private static readonly Size PlayerAreaSize = new Size(411, 152);
         // Player X positions
-        private const int BorderPosPlayerXLeft = 8;
-        private const int BorderPosPlayerXRight = 2245;
+        private const int BorderPosPlayerXLeft = 10;
+        private const int BorderPosPlayerXRight = 2138;
         // Player Y positions
-        private const int BorderPosPlayerY1 = 190;
-        private const int BorderPosPlayerY2 = 322;
-        private const int BorderPosPlayerY3 = 454;
-        private const int BorderPosPlayerY4 = 586;
-        private const int BorderPosPlayerY5 = 719;
+        private const int BorderPosPlayerY1 = 252;
+        private const int BorderPosPlayerY2 = 429;
+        private const int BorderPosPlayerY3 = 605;
+        private const int BorderPosPlayerY4 = 781;
+        private const int BorderPosPlayerY5 = 958;
         #endregion Border Pixel Position Constants
 #endif
 

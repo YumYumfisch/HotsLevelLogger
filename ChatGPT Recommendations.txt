@@ -1,0 +1,40 @@
+Antwort A
+1.    Convert the image to grayscale. This will make it easier to identify the digits in the image, since they will be black on a white background.
+2.    Use a thresholding algorithm to segment the digits from the background. This will create a binary image where the digits are white and the background is black.
+3.    Use connected component analysis to identify the individual digits in the image. This will allow you to identify each digit as a separate object
+4.    Use a feature extraction algorithm to extract the features of each digit. This might include things like the size and shape of the digit, the number of holes in the digit, and other characteristics.
+5.    Use a machine learning algorithm to classify the digits based on their features. You can train the algorithm using a dataset of labeled digits, and then use it to predict the labels of the digits in the image.
+(Relevant: 4 und 5)
+
+Über 4)
+Here are many different ways to extract features from an image, and the specific method you use will depend on the type of data you are working with and the task you are trying to accomplish. Some common methods include:
+a)    Edge detection: This involves identifying the points in an image where the intensity changes abruptly, which can indicate the presence of an object or boundary.
+b)    Texture analysis: This involves identifying the repeating patterns or structures in an image, which can be useful for classifying objects based on their texture.
+c)    Shape analysis: This involves identifying the geometric shapes in an image, such as circles, squares, and triangles. This can be useful for recognizing objects that have a particular shape.
+d)    Scale-invariant feature transform (SIFT): This is a method for extracting distinctive features from an image that are invariant to image scaling, rotation, and other transformations. This can be useful for recognizing objects in images that have been distorted or transformed in some way.
+e)    Color histograms: This involves counting the number of pixels in an image that have a particular color, which can be useful for identifying the dominant colors in an image.
+(Relevant: a bis e)
+
+Deterministische Klassifikationsalgorithmen
+A deterministic algorithm is an algorithm that always produces the same output for a given input, assuming that it terminates. In other words, a deterministic algorithm does not involve any randomness or probabilities, and it always produces the same result for the same input.
+There are many different algorithms that can be used for digit classification, and some of these algorithms may be deterministic. For example, you could use a simple rule-based algorithm that looks at the shape and structure of the digit and applies a set of rules to determine its label. This would be a deterministic algorithm, since it would always produce the same output for the same input.
+Another example of a deterministic algorithm for digit classification might be a k-nearest neighbors (k-NN) algorithm. This is a type of supervised machine learning algorithm that classifies data points based on their similarity to other labeled data points. In this case, the algorithm would be deterministic because it would always produce the same output for the same input, assuming that the training data and the distance metric used for the similarity calculation are fixed.
+
+Deterministischer Regelbasierter Algorithmus
+A rule-based algorithm for digit classification would typically use a set of rules to determine the label of a digit based on its features. Some of the features that might be used in such an algorithm include:
+a)    The number of holes in the digit: For example, the digit "8" has two holes, while the digit "0" has one hole.
+b)    The number of straight lines in the digit: For example, the digit "1" has one straight line, while the digit "8" has three straight lines.
+c)    The number of curved lines in the digit: For example, the digit "0" has one curved line, while the digit "6" has two curved lines.
+d)    The relative position of the lines in the digit: For example, the digit "7" has a horizontal line at the top and a vertical line at the bottom, while the digit "5" has a horizontal line at the middle and a vertical line at the bottom.
+These are just a few examples of the features that could be used in a rule-based algorithm for digit classification. The specific features and rules used will depend on the specific requirements and goals of the algorithm. For example, if the goal is to recognize digits that have been handwritten, the rules and features used in the algorithm might be different from those used for recognizing digits that have been typed or printed.
+
+Here are some examples of rules that could be used in a rule-based algorithm for digit classification:
+    If the digit has two holes and three straight lines, it is a "8".
+    If the digit has one hole and one straight line, it is a "0".
+    If the digit has one hole and one curved line, it is a "6".
+    If the digit has no holes and one straight line, it is a "1".
+
+Fazit: 
+Joar, gibt kein Fazit xD
+
+

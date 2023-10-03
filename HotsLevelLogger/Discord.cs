@@ -58,11 +58,11 @@ namespace Hots_Level_Logger
             };
             client = new DiscordSocketClient(socketConfig);
             client.Log += DiscordLog;
-            await client.LoginAsync(TokenType.Bot, token);
-            await client.StartAsync();
+            await client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
+            await client.StartAsync().ConfigureAwait(false);
 
             // Prevent application from being closed
-            await Task.Delay(-1);
+            await Task.Delay(-1).ConfigureAwait(false);
         }
 
         /// <summary>
